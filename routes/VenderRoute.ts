@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 
 import {
   GetVendorProfile,
-  GetVendorService,
+  UpdateVendorService,
   UpdateVendorProfile,
   VendorLogin,
 } from "../controller/VendorController";
@@ -13,7 +13,7 @@ const router = express.Router();
 router.post("/login", (req: Request, res: Response, next: NextFunction) => {
   VendorLogin(req, res).catch(next);
 });
-//
+//middleware is check
 router.use(Authenticate);
 router.get(
   "/profile",
@@ -25,7 +25,14 @@ router.get(
     }
   }
 );
-router.patch("/profile", UpdateVendorProfile);
-router.patch("/service", GetVendorService);
+router.patch(
+  "/profile",
+  async (req: Request, res: Response, next: NextFunction) => {
+    UpdateVendorProfile(req, res).catch(next);
+  }
+);
+router.patch("/service", (req: Request, res: Response, next: NextFunction) => {
+  UpdateVendorService(req, res);
+});
 
 export { router as VenderRoute };

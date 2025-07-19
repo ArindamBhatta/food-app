@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { VendorLoginInput, VendorPayload } from "../dto";
+import { EditVendorInputs, VendorLoginInputs, VendorPayload } from "../dto";
 import { FindVendor } from "./AdminController";
 import { GenerateSignature, ValidatePassword } from "../utility";
-import jwt from "jsonwebtoken";
-import { API_SECRET } from "../config";
 
 export const VendorLogin = async (req: Request, res: Response) => {
-  const { email, password } = <VendorLoginInput>req.body;
+  const { email, password } = <VendorLoginInputs>req.body;
 
   const existingVendor = await FindVendor(undefined, email);
   if (existingVendor !== null) {
@@ -44,11 +42,33 @@ export const GetVendorProfile = async (req: Request, res: Response) => {
 };
 
 export const UpdateVendorProfile = async (req: Request, res: Response) => {
-  // const {} = req.body;
-  // const user = req.user;
-  // if (user) {
-  //   const existingVendor = await FindVendor(user._id);
-  //   return res.json(existingVendor);
-  // }
+  const { name, address, phone, foodTypes } = <EditVendorInputs>req.body;
+  const user = req.user;
+  if (user) {
+    const existingVendor = await FindVendor(user._id);
+    if (existingVendor != null) {
+      existingVendor.name = name;
+      existingVendor.address = address;
+      existingVendor.phone = phone;
+      existingVendor.foodType = foodTypes;
+
+      const saveResult = await existingVendor.save();
+      return res.json(saveResult);
+    }
+    return res.json({ message: "Vendor Information not found" });
+  }
 };
-export const GetVendorService = async (req: Request, res: Response) => {};
+export const UpdateVendorService = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (user) {
+    const existingVendor = await FindVendor(user._id);
+
+    if (existingVendor !== null) {
+      existingVendor.serviceAvailable = !existingVendor.serviceAvailable;
+      const saveResult = await existingVendor.save();
+      return res.json(saveResult);
+    }
+    return res.json(existingVendor);
+  }
+  return res.json({ message: "Vendor information Not found" });
+};
