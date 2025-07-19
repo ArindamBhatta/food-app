@@ -5,6 +5,7 @@ import {
   UpdateVendorService,
   UpdateVendorProfile,
   VendorLogin,
+  AddFood,
 } from "../controller/VendorController";
 import { Authenticate } from "../middlewares/Controller";
 
@@ -33,6 +34,16 @@ router.patch(
 );
 router.patch("/service", (req: Request, res: Response, next: NextFunction) => {
   UpdateVendorService(req, res);
+});
+
+router.post("/food", (req: Request, res: Response, next: NextFunction) => {
+  AddFood(req, res).catch(next);
+});
+
+router.get("/foods", (req: Request, res: Response, next: NextFunction) => {
+  // You may want to implement the handler for getting foods here
+  // For now, just send a placeholder response or call the appropriate controller
+  res.status(501).json({ message: "Not implemented" });
 });
 
 export { router as VenderRoute };

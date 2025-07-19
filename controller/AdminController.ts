@@ -32,24 +32,6 @@ export const CreateVendor = async (req: Request, res: Response) => {
     phone,
   } = <CreateVendorInput>req.body;
 
-  // Validation: Check for missing required fields
-  const missingFields = [];
-  if (!name) missingFields.push("name");
-  if (!address) missingFields.push("address");
-  if (!pincode) missingFields.push("pincode");
-  if (!foodType) missingFields.push("foodType");
-  if (!email) missingFields.push("email");
-  if (!password) missingFields.push("password");
-  if (!ownerName) missingFields.push("ownerName");
-  if (!phone) missingFields.push("phone");
-
-  if (missingFields.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: `Missing required field(s): ${missingFields.join(", ")}`,
-    });
-  }
-
   const existingVendor = await FindVendor(undefined, email);
 
   if (existingVendor !== null) {
@@ -113,11 +95,7 @@ export const getVendor = async (
   res.json({ message: "vendors data not available" });
 };
 
-export const getVendorById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getVendorById = async (req: Request, res: Response) => {
   const vendorId: string = req.params.id;
 
   const vender = await Vendor.findById(vendorId);
