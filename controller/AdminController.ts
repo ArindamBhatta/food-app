@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, request } from "express";
+import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
 import { Vendor, VenderDoc } from "../models";
 import { GeneratedSalt, GeneratePassword } from "../utility";
@@ -20,11 +20,7 @@ export const FindVendor = async (
 };
 
 // controller function. It receives the HTTP request from the UI (frontend), extracts the vendor data from the request body, and processes it.
-export const CreateVendorUI = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const CreateVendor = async (req: Request, res: Response) => {
   const {
     name,
     address,
@@ -35,6 +31,24 @@ export const CreateVendorUI = async (
     ownerName,
     phone,
   } = <CreateVendorInput>req.body;
+
+  // Validation: Check for missing required fields
+  const missingFields = [];
+  if (!name) missingFields.push("name");
+  if (!address) missingFields.push("address");
+  if (!pincode) missingFields.push("pincode");
+  if (!foodType) missingFields.push("foodType");
+  if (!email) missingFields.push("email");
+  if (!password) missingFields.push("password");
+  if (!ownerName) missingFields.push("ownerName");
+  if (!phone) missingFields.push("phone");
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: `Missing required field(s): ${missingFields.join(", ")}`,
+    });
+  }
 
   const existingVendor = await FindVendor(undefined, email);
 
@@ -49,7 +63,7 @@ export const CreateVendorUI = async (
 
   const userPassword = await GeneratePassword(password, salt);
 
-  const CreateVendor = await Vendor.create({
+  const CreateVendorInDB = await Vendor.create({
     name: name,
     address: address,
     pincode: pincode,
@@ -71,16 +85,16 @@ export const CreateVendorUI = async (
     success: true,
     message: "Vendor created successfully!",
     data: {
-      id: CreateVendor._id,
-      name: CreateVendor.name,
-      email: CreateVendor.email,
-      ownerName: CreateVendor.ownerName,
-      phone: CreateVendor.phone,
-      address: CreateVendor.address,
-      pincode: CreateVendor.pincode,
-      foodType: CreateVendor.foodType,
-      rating: CreateVendor.rating,
-      serviceAvailable: CreateVendor.serviceAvailable,
+      id: CreateVendorInDB._id,
+      name: CreateVendorInDB.name,
+      email: CreateVendorInDB.email,
+      ownerName: CreateVendorInDB.ownerName,
+      phone: CreateVendorInDB.phone,
+      address: CreateVendorInDB.address,
+      pincode: CreateVendorInDB.pincode,
+      foodType: CreateVendorInDB.foodType,
+      rating: CreateVendorInDB.rating,
+      serviceAvailable: CreateVendorInDB.serviceAvailable,
     },
   });
 };

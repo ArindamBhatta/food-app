@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import {
-  CreateVendorUI,
+  CreateVendor,
   getVendor,
   getVendorById,
 } from "../controller/AdminController";
@@ -8,7 +8,7 @@ import {
 const router = express.Router();
 
 router.post("/vendor", (req: Request, res: Response, next: NextFunction) => {
-  CreateVendorUI(req, res, next).catch(next);
+  CreateVendor(req, res).catch(next);
 }); // Admin creates a new vendor
 
 router.get("/vendors", (req: Request, res: Response, next: NextFunction) => {
