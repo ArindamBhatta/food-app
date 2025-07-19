@@ -13,13 +13,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use("/admin", AdminRoute);
 app.use("/Vendor", VenderRoute);
+
 mongoose
   .connect(MONGO_URL, {})
-  .then((result) => {
-    console.log(result);
+  .then(() => {
+    console.log("✅ MongoDB connected successfully!");
   })
   .catch((error) => {
-    console.log(error);
+    console.log("❌ MongoDB connection failed:", error);
   });
 
 // Start server

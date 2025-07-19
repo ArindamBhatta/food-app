@@ -1,2 +1,2 @@
 export const MONGO_URL =
-  "mongodb+srv://arindambhattacharyyaab:4MNV3bAD8mJZ9WP1@foodapp.vvgtbmc.mongodb.net/";
+  "mongodb+srv://arindambhattacharyyaab:yJ7YLxMrs6Ajq2Vy@foodapp.vvgtbmc.mongodb.net/"; //no curly bracket is needed
