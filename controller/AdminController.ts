@@ -1,17 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { CreateVendorInput } from "../dto";
-import { Vendor, VenderDoc } from "../models";
+import { Vendor, VendorDoc } from "../models";
 import { GeneratedSalt, GeneratePassword } from "../utility";
 
-//step 1: - check if the vendor is already exist
-
-//step 2:  then create the vendor
-
-// Without VenderDoc interface - no type safety
+//global method to fetch a particular vendor
 export const FindVendor = async (
   id?: string,
   email?: string
-): Promise<VenderDoc | null> => {
+): Promise<VendorDoc | null> => {
   if (email) {
     return await Vendor.findOne({ email: email });
   } else {
@@ -19,7 +15,7 @@ export const FindVendor = async (
   }
 };
 
-// controller function. It receives the HTTP request from the UI (frontend), extracts the vendor data from the request body, and processes it.
+// create a new Vendor. using mongoDB create method
 export const CreateVendor = async (req: Request, res: Response) => {
   const {
     name,
@@ -43,7 +39,7 @@ export const CreateVendor = async (req: Request, res: Response) => {
   //generate a salt
   const salt = await GeneratedSalt();
 
-  const userPassword = await GeneratePassword(password, salt);
+  const encryptedPassword = await GeneratePassword(password, salt);
 
   const CreateVendorInDB = await Vendor.create({
     name: name,
@@ -51,7 +47,7 @@ export const CreateVendor = async (req: Request, res: Response) => {
     pincode: pincode,
     foodType: foodType,
     email: email,
-    password: userPassword,
+    password: encryptedPassword,
     salt: salt,
     ownerName: ownerName,
     phone: phone,
@@ -59,8 +55,6 @@ export const CreateVendor = async (req: Request, res: Response) => {
     serviceAvailable: false,
     coverImages: [],
   });
-
-  //encrypt password using the salt
 
   //create a response message for user
   res.status(201).json({
@@ -81,11 +75,8 @@ export const CreateVendor = async (req: Request, res: Response) => {
   });
 };
 
-export const getVendor = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+//get all vendor using mongoDB find method
+export const getAllVendors = async (res: Response) => {
   const vendor = await Vendor.find();
 
   if (vendor !== null) {
@@ -95,13 +86,14 @@ export const getVendor = async (
   res.json({ message: "vendors data not available" });
 };
 
+//get a particular vendor using mongoDB findById method
 export const getVendorById = async (req: Request, res: Response) => {
   const vendorId: string = req.params.id;
 
-  const vender = await Vendor.findById(vendorId);
+  const vendor = await Vendor.findById(vendorId);
 
-  if (vender !== null) {
-    return res.json(vender);
+  if (vendor !== null) {
+    return res.json(vendor);
   }
 
   res.json({ message: "Vendor Data is not available" });

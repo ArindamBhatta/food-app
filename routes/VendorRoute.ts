@@ -7,15 +7,19 @@ import {
   VendorLogin,
   AddFood,
 } from "../controller/VendorController";
+
 import { Authenticate } from "../middlewares/Controller";
 
 const router = express.Router();
 
+//vendor login check get the token from json web token
 router.post("/login", (req: Request, res: Response, next: NextFunction) => {
   VendorLogin(req, res).catch(next);
 });
+
 //middleware is check
 router.use(Authenticate);
+
 router.get(
   "/profile",
   async (req: Request, res: Response, next: NextFunction) => {
@@ -46,4 +50,4 @@ router.get("/foods", (req: Request, res: Response, next: NextFunction) => {
   res.status(501).json({ message: "Not implemented" });
 });
 
-export { router as VenderRoute };
+export { router as VendorRoute };

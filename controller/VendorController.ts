@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { EditVendorInputs, VendorLoginInputs, VendorPayload } from "../dto";
 import { FindVendor } from "./AdminController";
 import { GenerateSignature, ValidatePassword } from "../utility";
@@ -7,17 +7,18 @@ import { Food } from "../models/Food";
 
 export const VendorLogin = async (req: Request, res: Response) => {
   const { email, password } = <VendorLoginInputs>req.body;
-
+  //find vendor from database
   const existingVendor = await FindVendor(undefined, email);
+
+  // encrypt password
   if (existingVendor !== null) {
     const validation = await ValidatePassword(
       password,
       existingVendor.password,
       existingVendor.salt
     );
-
+    //get access token
     if (validation) {
-      //access for playing football
       const signature = GenerateSignature({
         _id: existingVendor.id,
         email: existingVendor.email,

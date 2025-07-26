@@ -1,7 +1,9 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-// The VenderDoc interface extends Mongoose's Document interface and defines the structure of your vendor documents. This gives you type safety when working with vendor data:
-interface VenderDoc extends Document {
+// The VendorDoc interface extends Mongoose's Document interface
+//  and defines the structure of your vendor documents.
+// This gives you type safety when working with vendor data:
+interface VendorDoc extends Document {
   name: string;
   ownerName: string;
   foodType: [string];
@@ -39,7 +41,7 @@ const VendorSchema = new Schema(
     ],
   },
   {
-    //transform to jon for retrieve data
+    //transform to json for retrieve data
 
     toJSON: {
       transform(doc, ret) {
@@ -53,7 +55,7 @@ const VendorSchema = new Schema(
     timestamps: true,
   }
 );
-// This tells Mongoose that documents created from this model will have the structure defined in VenderDoc.
-const Vendor = mongoose.model<VenderDoc>("vendor", VendorSchema);
+// This tells Mongoose that documents created from this model will have the structure defined in VendorDoc.
+const Vendor = mongoose.model<VendorDoc>("vendor", VendorSchema);
 
-export { Vendor, VenderDoc };
+export { Vendor, VendorDoc };
