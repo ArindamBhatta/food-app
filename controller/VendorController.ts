@@ -6,7 +6,6 @@ import { CreateFoodInput } from "../dto/Food.dto";
 import { Food, FoodDoc } from "../models/Food";
 import { AuthPayload } from "../dto/auth.dto";
 import { VendorDoc } from "../models";
-import { log } from "console";
 
 //if a user login token is generate and send to frontend
 export const VendorLogin = async (req: Request, res: Response) => {
@@ -74,15 +73,17 @@ export const UpdateVendorCoverImage = async (req: Request, res: Response) => {
   if (user) {
     const existingVendor: VendorDoc = await FindVendor(user._id);
 
-    console.log(existingVendor);
-
     if (existingVendor) {
       const files = req.files as Express.Multer.File[];
-      const images = files.map((file: Express.Multer.File) => file.filename);
+
+      const images: string[] = files.map(
+        (file: Express.Multer.File) => file.filename
+      );
 
       existingVendor.coverImages.push(...images);
 
-      const result = await existingVendor.save();
+      const result: VendorDoc = await existingVendor.save();
+
       return res.json(result);
     }
   }
