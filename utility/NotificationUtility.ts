@@ -22,20 +22,19 @@ export const GenerateOpt = (): { otp: number; expiry: Date } => {
   return { otp, expiry };
 };
 
-/**
- * Sends an OTP to a given phone number using Twilio.
- * @param otp The One-Time Password.
- * @param toPhoneNumber The recipient's phone number.
- */
 export const onRequestOtp = async (
   otp: number,
   toPhoneNumber: string
 ): Promise<boolean> => {
   try {
+    if (!toPhoneNumber.startsWith("+")) {
+      toPhoneNumber = `+91${toPhoneNumber.replace(/^0+/, "")}`;
+    }
+
     await client.messages.create({
       body: `Your OTP for Food Order App is ${otp}`,
       from: fromAdminPhone,
-      to: toPhoneNumber, // Make sure this is in E.164 format, e.g., +91...
+      to: toPhoneNumber,
     });
     return true;
   } catch (error) {

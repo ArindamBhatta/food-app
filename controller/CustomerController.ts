@@ -2,9 +2,18 @@ import e, { Request, Response, NextFunction } from "express";
 import { validate } from "class-validator";
 import { Types } from "mongoose";
 
-import { plainToInstance } from "class-transformer";
-import { CreateCustomerInput } from "../dto/Customer.dto";
-import { GeneratedSalt, GeneratePassword, GenerateSignature } from "../utility";
+import { plainToClass, plainToInstance } from "class-transformer";
+import {
+  CreateCustomerInput,
+  EditCustomerProfileInputs,
+  UserLoginInputs,
+} from "../dto/Customer.dto";
+import {
+  GeneratedSalt,
+  GeneratePassword,
+  GenerateSignature,
+  ValidatePassword,
+} from "../utility";
 import { GenerateOpt, onRequestOtp } from "../utility/NotificationUtility";
 import { Customer, CustomerDoc } from "../models/Customer";
 
@@ -91,27 +100,65 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
   }
 };
 
-export const CustomerLogin = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {};
+export const CustomerLogin = async (req: Request, res: Response) => {
+  const loginInput = plainToInstance(UserLoginInputs, req.body);
 
-export const CustomerVerify = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+  const loginError = await validate(loginInput, {
+    validationError: { target: false },
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  });
+
+  if (loginError.length > 0) {
+    res.status(400).json({ message: "Validation failed", errors: loginError });
+  }
+
+  const { email, password } = loginInput;
+
+  const customer = await Customer.findOne({ email: email });
+
+  if (customer) {
+    const validation = await ValidatePassword(
+      password,
+      customer.password,
+      customer.salt
+    );
+
+    if (validation) {
+      const signature = GenerateSignature({
+        _id: (customer._id as Types.ObjectId).toString(),
+        email: customer.email,
+        verified: customer.verified,
+      });
+
+      return res.status(201).json({
+        signature: signature,
+        verified: customer.verified,
+        email: customer.email,
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid Password" });
+    }
+  } else {
+    return res.status(400).json({ message: "Customer not found" });
+  }
+};
+
+export const CustomerVerify = async (req: Request, res: Response) => {
   const { otp } = req.body;
   const customer = req.user as CustomerDoc;
 
   if (customer) {
-    const profile = await Customer.findById(customer._id);
+    const customerProfile = await Customer.findById(customer._id);
 
-    if (profile) {
-      if (profile.otp === parseInt(otp) && profile.otp_expiry >= new Date()) {
-        profile.verified = true;
-        const updatedCustomer = await profile.save();
+    if (customerProfile) {
+      if (
+        customerProfile.otp === parseInt(otp) &&
+        customerProfile.otp_expiry >= new Date()
+      ) {
+        //modify boolean
+        customerProfile.verified = true;
+        const updatedCustomer = await customerProfile.save();
 
         const signature = GenerateSignature({
           _id: (updatedCustomer._id as Types.ObjectId).toString(),
@@ -127,24 +174,75 @@ export const CustomerVerify = async (
       } else {
         return res.status(400).json({ message: "Invalid OTP or Expired" });
       }
+    } else {
+      return res.status(404).json({ message: "Customer not found" });
     }
   }
 };
 
-export const RequestOtp = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {};
+export const RequestOtp = async (req: Request, res: Response) => {
+  const customer = req.user as CustomerDoc;
 
-export const getCustomerProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {};
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
 
-export const EditCustomerProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {};
+    if (profile) {
+      const { otp, expiry } = GenerateOpt();
+
+      profile.otp = otp;
+      profile.otp_expiry = expiry;
+
+      await profile.save();
+
+      await onRequestOtp(otp, profile.phone);
+
+      return res
+        .status(200)
+        .json({ message: "OTP sent to your registered phone" });
+    }
+  } else {
+    return res.status(404).json({ message: "Customer not found" });
+  }
+};
+
+export const getCustomerProfile = async (req: Request, res: Response) => {
+  const customer = req.user as CustomerDoc;
+
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+
+    if (profile) {
+      return res.status(200).json(profile);
+    }
+  } else {
+    return res.status(404).json({ message: "Customer not found" });
+  }
+};
+
+export const EditCustomerProfile = async (req: Request, res: Response) => {
+  const customer = req.user as CustomerDoc;
+
+  const profileInputs = plainToClass(EditCustomerProfileInputs, req.body);
+
+  const profileErrors = await validate(profileInputs, {
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  });
+
+  if (profileErrors.length > 0) {
+    return res
+      .status(400)
+      .json({ message: "Validation failed", errors: profileErrors });
+  }
+
+  const { firstName, lastName, address } = profileInputs;
+
+  if (customer) {
+    const profile = await Customer.findById(customer._id);
+    if (profile) {
+      profile.firstName = firstName;
+      profile.lastName = lastName;
+      profile.address = address;
+    }
+  }
+};
