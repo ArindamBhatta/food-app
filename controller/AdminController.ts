@@ -82,7 +82,11 @@ export const CreateVendor: Function = async (req: Request, res: Response) => {
 };
 
 //get all vendor using mongoDB find method
-export const getAllVendors = async (res: Response) => {
+export const getAllVendors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const vendor = await Vendor.find();
 
   if (vendor !== null) {

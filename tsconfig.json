@@ -13,7 +13,9 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]

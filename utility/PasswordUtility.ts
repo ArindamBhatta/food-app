@@ -1,9 +1,17 @@
 import bcrypt from "bcrypt";
-import { VendorPayload } from "../dto";
 import jwt from "jsonwebtoken";
-import { API_SECRET } from "../config";
-import { AuthPayload } from "../dto/auth.dto";
+
+import { AuthPayload } from "../dto/Auth.dto";
 import { Request } from "express";
+
+const API_SECRET = process.env.API_SECRET;
+
+if (!API_SECRET) {
+  console.error(
+    "❌ API_SECRET environment variable not set. Please check your .env file."
+  );
+  process.exit(1);
+}
 
 export const GeneratedSalt = async () => {
   return await bcrypt.genSalt();
@@ -22,7 +30,7 @@ export const ValidatePassword = async (
 };
 
 //token
-export const GenerateSignature = (payload: VendorPayload) => {
+export const GenerateSignature = (payload: AuthPayload) => {
   const signature: string = jwt.sign(payload, API_SECRET, { expiresIn: "1d" });
   return signature;
 };

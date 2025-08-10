@@ -1,6 +1,9 @@
 {
+  "exec": "ts-node -r dotenv/config -T",
   "watch": ["**/*.ts"],
   "ignore": ["node_modules/**/*", "dist/**/*"],
-  "exec": "ts-node -T index.ts",
-  "ext": "ts,json"
+  "ext": "ts,json",
+  "env": {
+    "DOTENV_CONFIG_PATH": "./.env"
+  }
 }

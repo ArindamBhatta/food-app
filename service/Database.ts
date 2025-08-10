@@ -1,22 +1,22 @@
 import mongoose from "mongoose";
-import { MONGO_URL } from "../config";
 
 export default async () => {
+  const mongoUri = process.env.MONGO_URL;
+
+  console.log(mongoUri);
+
+  if (!mongoUri) {
+    console.error(
+      "❌ MONGO_URL environment variable not set. Please check your .env file."
+    );
+    process.exit(1); // Exit if the database URL is not configured
+  }
+
   try {
-    mongoose
-      .connect(MONGO_URL, {
-        // useNewUrlParser: true,
-        // useUnifiedTopology: true,
-        // useCreateIndex: true,
-        // useFindAndModify: false,
-      })
-      .then(() => {
-        console.log("✅ MongoDB connected successfully!");
-      })
-      .catch((error) => {
-        console.log("❌ MongoDB connection failed:", error);
-      });
-  } catch (ex) {
-    console.log(ex);
+    await mongoose.connect(mongoUri);
+    console.log("✅ MongoDB connected successfully!");
+  } catch (error) {
+    console.error("❌ MongoDB connection failed:", error);
+    process.exit(1); // Exit on connection failure
   }
 };

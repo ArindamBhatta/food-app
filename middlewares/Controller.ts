@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AuthPayload } from "../dto/auth.dto";
+import { AuthPayload } from "../dto/Auth.dto";
 import { ValidateSignature } from "../utility";
 
 declare global {

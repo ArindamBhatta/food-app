@@ -4,7 +4,7 @@ import { FindVendor } from "./AdminController";
 import { GenerateSignature, ValidatePassword } from "../utility";
 import { CreateFoodInput } from "../dto/Food.dto";
 import { Food, FoodDoc } from "../models/Food";
-import { AuthPayload } from "../dto/auth.dto";
+import { AuthPayload } from "../dto/Auth.dto";
 import { VendorDoc } from "../models";
 
 //if a user login token is generate and send to frontend
@@ -40,7 +40,7 @@ export const VendorLogin = async (req: Request, res: Response) => {
 
 //frontend send the token, verify the token
 export const GetVendorProfile = async (req: Request, res: Response) => {
-  const user: VendorPayload | undefined = req.user;
+  const user: AuthPayload | undefined = req.user;
 
   if (user) {
     const existingVendor: VendorDoc = await FindVendor(user._id);
@@ -51,7 +51,7 @@ export const GetVendorProfile = async (req: Request, res: Response) => {
 
 export const UpdateVendorProfile = async (req: Request, res: Response) => {
   const { name, address, phone, foodTypes } = <EditVendorInputs>req.body;
-  const user: VendorPayload | undefined = req.user;
+  const user: AuthPayload | undefined = req.user;
   if (user) {
     const existingVendor: VendorDoc = await FindVendor(user._id);
 
@@ -90,7 +90,7 @@ export const UpdateVendorCoverImage = async (req: Request, res: Response) => {
 };
 
 export const UpdateVendorService = async (req: Request, res: Response) => {
-  const user: VendorPayload | undefined = req.user;
+  const user: AuthPayload | undefined = req.user;
   if (user) {
     const existingVendor: VendorDoc = await FindVendor(user._id);
 
@@ -107,7 +107,7 @@ export const UpdateVendorService = async (req: Request, res: Response) => {
 };
 
 export const AddFood = async (req: Request, res: Response) => {
-  const user: VendorPayload | undefined = req.user;
+  const user: AuthPayload | undefined = req.user;
 
   if (user) {
     const { name, description, category, foodType, readyTime, price } = <
