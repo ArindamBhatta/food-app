@@ -5,7 +5,7 @@ import {
   EditCustomerProfile,
   getCustomerProfile,
   RequestOtp,
-} from "../controller";
+} from "../../controller";
 import { Authenticate } from "../middlewares/Controller";
 
 const router = express.Router();

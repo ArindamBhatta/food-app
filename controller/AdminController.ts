@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateVendorInput } from "../dto";
-import { Vendor, VendorDoc } from "../models";
-import { GeneratedSalt, GeneratePassword } from "../utility";
+import { CreateVendorInput } from "../src/dto";
+import { Vendor, VendorDoc } from "../src/models";
+import { GeneratedSalt, GeneratePassword } from "../src/utility";
 
 //return Promise<VendorDoc | null>
 

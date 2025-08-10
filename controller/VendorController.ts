@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { EditVendorInputs, VendorLoginInputs, VendorPayload } from "../dto";
+import { EditVendorInputs, VendorLoginInputs, VendorPayload } from "../src/dto";
 import { FindVendor } from "./AdminController";
-import { GenerateSignature, ValidatePassword } from "../utility";
-import { CreateFoodInput } from "../dto/Food.dto";
-import { Food, FoodDoc } from "../models/Food";
-import { AuthPayload } from "../dto/Auth.dto";
-import { VendorDoc } from "../models";
+import { GenerateSignature, ValidatePassword } from "../src/utility";
+import { CreateFoodInput } from "../src/dto/Food.dto";
+import { Food, FoodDoc } from "../src/models/Food";
+import { AuthPayload } from "../src/dto/Auth.dto";
+import { VendorDoc } from "../src/models";
 
 //if a user login token is generate and send to frontend
 export const VendorLogin = async (req: Request, res: Response) => {

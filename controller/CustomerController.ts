@@ -7,15 +7,15 @@ import {
   CreateCustomerInput,
   EditCustomerProfileInputs,
   UserLoginInputs,
-} from "../dto/Customer.dto";
+} from "../src/dto/Customer.dto";
 import {
   GeneratedSalt,
   GeneratePassword,
   GenerateSignature,
   ValidatePassword,
-} from "../utility";
-import { GenerateOpt, onRequestOtp } from "../utility/NotificationUtility";
-import { Customer, CustomerDoc } from "../models/Customer";
+} from "../src/utility";
+import { GenerateOpt, onRequestOtp } from "../src/utility/NotificationUtility";
+import { Customer, CustomerDoc } from "../src/models/Customer";
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   try {
