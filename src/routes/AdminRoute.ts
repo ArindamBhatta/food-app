@@ -3,7 +3,7 @@ import {
   CreateVendor,
   getAllVendors,
   getVendorById,
-} from "../../controller/AdminController";
+} from "../controller/AdminController";
 
 const router = express.Router();
 

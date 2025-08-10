@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateVendorInput } from "../src/dto";
-import { Vendor, VendorDoc } from "../src/models";
-import { GeneratedSalt, GeneratePassword } from "../src/utility";
+import { CreateVendorInput } from "../dto";
+import { Vendor, VendorDoc } from "../models";
+import { GeneratedSalt, GeneratePassword } from "../utility";
 
 //return Promise<VendorDoc | null>
 
@@ -82,11 +82,7 @@ export const CreateVendor: Function = async (req: Request, res: Response) => {
 };
 
 //get all vendor using mongoDB find method
-export const getAllVendors = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getAllVendors = async (res: Response) => {
   const vendor = await Vendor.find();
 
   if (vendor !== null) {

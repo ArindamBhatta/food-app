@@ -5,7 +5,7 @@ import {
   EditCustomerProfile,
   getCustomerProfile,
   RequestOtp,
-} from "../../controller";
+} from "../controller";
 import { Authenticate } from "../middlewares/Controller";
 
 const router = express.Router();
@@ -43,5 +43,11 @@ router.get("/profile", (req: Request, res: Response, next: NextFunction) => {
 router.patch("/profile", (req: Request, res: Response, next: NextFunction) => {
   EditCustomerProfile(req, res).catch(next);
 });
+
+// order
+router.post(
+  "/create-order",
+  (req: Request, res: Response, next: NextFunction) => {}
+);
 
 export { router as CustomerRoute };

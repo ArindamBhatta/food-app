@@ -8,7 +8,7 @@ import {
   AddFood,
   getFood,
   UpdateVendorCoverImage,
-} from "../../controller/VendorController";
+} from "../controller/VendorController";
 
 import { Authenticate } from "../middlewares/Controller";
 
