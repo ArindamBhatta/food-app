@@ -3,8 +3,9 @@ import { CreateVendorInput } from "../dto";
 import { Vendor, VendorDoc } from "../models";
 import { GeneratedSalt, GeneratePassword } from "../utility";
 
-//global method to fetch a particular vendor
-export const FindVendor = async (
+//return Promise<VendorDoc | null>
+
+export const FindVendor: Function = async (
   id?: string,
   email?: string
 ): Promise<VendorDoc | null> => {
@@ -16,7 +17,9 @@ export const FindVendor = async (
 };
 
 // create a new Vendor. using mongoDB create method
-export const CreateVendor = async (req: Request, res: Response) => {
+export const CreateVendor: Function = async (req: Request, res: Response) => {
+  // const name = req.body.name;
+  //Destructuring = L.H.S(Destructuring) = R.H.S(Assigning)
   const {
     name,
     address,
@@ -28,7 +31,7 @@ export const CreateVendor = async (req: Request, res: Response) => {
     phone,
   } = <CreateVendorInput>req.body;
 
-  const existingVendor = await FindVendor(undefined, email);
+  const existingVendor: VendorDoc | null = await FindVendor(undefined, email);
 
   if (existingVendor !== null) {
     return res
@@ -36,11 +39,13 @@ export const CreateVendor = async (req: Request, res: Response) => {
       .json({ message: "A vendor is exist with this email ID" });
   }
 
-  //generate a salt
-  const salt = await GeneratedSalt();
+  //generate a random string
+  const salt: string = await GeneratedSalt();
 
+  // generate a password
   const encryptedPassword = await GeneratePassword(password, salt);
 
+  //create a vendor in database
   const CreateVendorInDB = await Vendor.create({
     name: name,
     address: address,
@@ -54,6 +59,7 @@ export const CreateVendor = async (req: Request, res: Response) => {
     rating: 0,
     serviceAvailable: false,
     coverImages: [],
+    foods: [],
   });
 
   //create a response message for user

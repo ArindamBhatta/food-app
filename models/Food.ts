@@ -9,7 +9,7 @@ interface FoodDoc extends Document {
   readyTime: number;
   price: number;
   rating: number;
-  image: [string];
+  images: [string];
 }
 
 const FoodSchema = new Schema(
@@ -22,7 +22,7 @@ const FoodSchema = new Schema(
     readyTime: { type: Number },
     price: { type: Number, require: true },
     rating: { type: Number },
-    image: { type: [String] },
+    images: { type: [String] },
   },
   {
     toJSON: {
@@ -38,4 +38,4 @@ const FoodSchema = new Schema(
 
 const Food = mongoose.model<FoodDoc>("food", FoodSchema);
 
-export { Food };
+export { Food, FoodDoc };

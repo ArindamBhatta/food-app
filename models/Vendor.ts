@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { FoodDoc } from "./Food";
 
 // The VendorDoc interface extends Mongoose's Document interface
 //  and defines the structure of your vendor documents.
@@ -16,7 +17,7 @@ interface VendorDoc extends Document {
   serviceAvailable: boolean;
   coverImages: [string];
   rating: number;
-  foods: any;
+  foods: [FoodDoc]; //store the food doc
 }
 
 const VendorSchema = new Schema(

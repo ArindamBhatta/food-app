@@ -6,3 +6,9 @@ export interface CreateFoodInput {
   readyTime: number;
   price: number;
 }
+
+export interface FullFoodInput extends CreateFoodInput {
+  vendorId: string;
+  images: string[];
+  rating: number;
+}

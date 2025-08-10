@@ -3,23 +3,28 @@ import { EditVendorInputs, VendorLoginInputs, VendorPayload } from "../dto";
 import { FindVendor } from "./AdminController";
 import { GenerateSignature, ValidatePassword } from "../utility";
 import { CreateFoodInput } from "../dto/Food.dto";
-import { Food } from "../models/Food";
+import { Food, FoodDoc } from "../models/Food";
+import { AuthPayload } from "../dto/auth.dto";
+import { VendorDoc } from "../models";
+import { log } from "console";
 
+//if a user login token is generate and send to frontend
 export const VendorLogin = async (req: Request, res: Response) => {
   const { email, password } = <VendorLoginInputs>req.body;
   //find vendor from database
   const existingVendor = await FindVendor(undefined, email);
 
-  // encrypt password
+  //decrypt password
   if (existingVendor !== null) {
-    const validation = await ValidatePassword(
+    const validation: boolean = await ValidatePassword(
       password,
       existingVendor.password,
       existingVendor.salt
     );
-    //get access token
+
+    //get the access token
     if (validation) {
-      const signature = GenerateSignature({
+      const signature: string = GenerateSignature({
         _id: existingVendor.id,
         email: existingVendor.email,
         name: existingVendor.name,
@@ -34,11 +39,12 @@ export const VendorLogin = async (req: Request, res: Response) => {
   }
 };
 
+//frontend send the token, verify the token
 export const GetVendorProfile = async (req: Request, res: Response) => {
-  const user = req.user;
+  const user: VendorPayload | undefined = req.user;
 
   if (user) {
-    const existingVendor = await FindVendor(user._id);
+    const existingVendor: VendorDoc = await FindVendor(user._id);
     return res.json(existingVendor);
   }
   return res.json({ message: "Vendor information not found" });
@@ -46,29 +52,52 @@ export const GetVendorProfile = async (req: Request, res: Response) => {
 
 export const UpdateVendorProfile = async (req: Request, res: Response) => {
   const { name, address, phone, foodTypes } = <EditVendorInputs>req.body;
-  const user = req.user;
+  const user: VendorPayload | undefined = req.user;
   if (user) {
-    const existingVendor = await FindVendor(user._id);
+    const existingVendor: VendorDoc = await FindVendor(user._id);
+
     if (existingVendor != null) {
       existingVendor.name = name;
       existingVendor.address = address;
       existingVendor.phone = phone;
       existingVendor.foodType = foodTypes;
 
-      const saveResult = await existingVendor.save();
+      const saveResult: VendorDoc = await existingVendor.save();
       return res.json(saveResult);
     }
     return res.json({ message: "Vendor Information not found" });
   }
 };
-export const UpdateVendorService = async (req: Request, res: Response) => {
+
+export const UpdateVendorCoverImage = async (req: Request, res: Response) => {
   const user = req.user;
   if (user) {
-    const existingVendor = await FindVendor(user._id);
+    const existingVendor: VendorDoc = await FindVendor(user._id);
+
+    console.log(existingVendor);
+
+    if (existingVendor) {
+      const files = req.files as Express.Multer.File[];
+      const images = files.map((file: Express.Multer.File) => file.filename);
+
+      existingVendor.coverImages.push(...images);
+
+      const result = await existingVendor.save();
+      return res.json(result);
+    }
+  }
+};
+
+export const UpdateVendorService = async (req: Request, res: Response) => {
+  const user: VendorPayload | undefined = req.user;
+  if (user) {
+    const existingVendor: VendorDoc = await FindVendor(user._id);
 
     if (existingVendor !== null) {
       existingVendor.serviceAvailable = !existingVendor.serviceAvailable;
-      const saveResult = await existingVendor.save();
+      // save method is trigger
+      const saveResult: VendorDoc = await existingVendor.save(); //hook
+
       return res.json(saveResult);
     }
     return res.json(existingVendor);
@@ -77,29 +106,38 @@ export const UpdateVendorService = async (req: Request, res: Response) => {
 };
 
 export const AddFood = async (req: Request, res: Response) => {
-  const user = req.user;
+  const user: VendorPayload | undefined = req.user;
 
   if (user) {
     const { name, description, category, foodType, readyTime, price } = <
       CreateFoodInput
     >req.body;
 
-    const vendor = await FindVendor(user._id);
+    const vendor: VendorDoc = await FindVendor(user._id);
+
     //food created
     if (vendor !== null) {
-      const createdFood = await Food.create({
+      const file = req.files as Express.Multer.File[];
+
+      const images: string[] = file.map(
+        (file: Express.Multer.File) => file.filename
+      );
+
+      const createdFood: FoodDoc = await Food.create({
         vendorId: vendor._id,
         name: name,
         description: description,
         category: category,
         foodType: foodType,
         readyTime: readyTime,
-        images: ["mock.jpg"],
+        images: images,
         price: price,
         rating: 0,
       });
+
       //push the food to vendor
       vendor.foods.push(createdFood);
+
       const result = await vendor.save();
       return res.json(result);
     }
@@ -107,4 +145,15 @@ export const AddFood = async (req: Request, res: Response) => {
 
   return res.json({ message: "Something went wrong with foods" });
 };
-export const getFood = () => {};
+
+export const getFood = async (req: Request, res: Response) => {
+  const user: AuthPayload | undefined = req.user;
+
+  if (user) {
+    const foods = await Food.find({ vendorId: user._id });
+    if (foods !== null) {
+      return res.json(foods);
+    }
+    return res.json({ message: "Foods information not found" });
+  }
+};

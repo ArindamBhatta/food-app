@@ -1,13 +1,14 @@
 import express from "express";
-
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
+import path from "path";
 import { AdminRoute, VendorRoute } from "./routes";
 import { MONGO_URL } from "./config";
 
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 const PORT = process.env.PORT || 3000;
 
