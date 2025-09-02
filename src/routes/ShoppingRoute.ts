@@ -11,9 +11,12 @@ const router = express.Router();
 
 // ---------- Food Availability --------------
 
-router.get("/:pincode", (req: Request, res: Response, next: NextFunction) => {
-  GetFoodAvailability(req, res).catch(next);
-});
+router.get(
+  "/foods/:pincode",
+  (req: Request, res: Response, next: NextFunction) => {
+    GetFoodAvailability(req, res).catch(next);
+  }
+);
 
 // --------- Top Restaurants -----------------
 router.get(
@@ -39,7 +42,7 @@ router.get(
   }
 );
 
-// ------- Find Restorenet by Id ---------
+// ------- Find Restorenet by Id vendor Id---------
 router.get(
   "/restaurant/:id",
   (req: Request, res: Response, next: NextFunction) => {

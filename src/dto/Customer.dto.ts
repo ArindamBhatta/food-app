@@ -1,5 +1,6 @@
 import { IsEmail, IsPhoneNumber, Length } from "class-validator";
 
+//Signup Dto
 export class CreateCustomerInput {
   @IsEmail()
   email: string;
@@ -11,6 +12,7 @@ export class CreateCustomerInput {
   phone: string;
 }
 
+//login Dto
 export class UserLoginInputs {
   @IsEmail()
   email: string;
@@ -32,4 +34,9 @@ export interface CustomerPayload {
   _id: string;
   email: string;
   verified: boolean;
+}
+
+export class OrderInputs {
+  _id: string;
+  unit: number;
 }

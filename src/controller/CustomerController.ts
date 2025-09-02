@@ -1,11 +1,12 @@
 import e, { Request, Response, NextFunction } from "express";
 import { validate } from "class-validator";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 import { plainToClass, plainToInstance } from "class-transformer";
 import {
   CreateCustomerInput,
   EditCustomerProfileInputs,
+  OrderInputs,
   UserLoginInputs,
 } from "../dto/Customer.dto";
 import {
@@ -16,6 +17,8 @@ import {
 } from "../utility";
 import { GenerateOpt, onRequestOtp } from "../utility/NotificationUtility";
 import { Customer, CustomerDoc } from "../models/Customer";
+import { Food } from "../models/Food";
+import { Order } from "../models/Order";
 
 export const CustomerSignUp = async (req: Request, res: Response) => {
   try {
@@ -70,6 +73,7 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
       verified: false,
       lat: 0,
       lng: 0,
+      orders: [],
     });
 
     if (!result) {
@@ -246,3 +250,79 @@ export const EditCustomerProfile = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const CreateOrder = async (req: Request, res: Response) => {
+  try {
+    // 1. Get current logged-in customer
+    const customer = req.user as CustomerDoc;
+    if (!customer) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    // 2. Find customer profile
+    const profile = await Customer.findById(customer._id);
+    if (!profile) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    // 3. Get cart from request body
+    const cart: OrderInputs[] = req.body as OrderInputs[];
+    if (!cart || cart.length === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    // 4. Create order id
+    const orderId = new Types.ObjectId().toString();
+
+    let netAmount = 0;
+    let cartItems: { foodId: string; unit: number }[] = [];
+
+    // 5. Fetch all foods in the cart
+    const foods = await Food.find()
+      .where("_id")
+      .in(cart.map((item) => item._id))
+      .exec();
+
+    // 6. Match foods with cart items and calculate total
+    foods.forEach((food) => {
+      cart.forEach(({ _id, unit }) => {
+        if (food._id.toString() === _id) {
+          netAmount += food.price * unit;
+          cartItems.push({ foodId: food._id.toString(), unit });
+        }
+      });
+    });
+
+    if (cartItems.length === 0) {
+      return res.status(400).json({ message: "Invalid cart items" });
+    }
+
+    // 7. Create order
+    const currentOrder = await Order.create({
+      orderID: orderId,
+      items: cartItems,
+      totalAmount: netAmount,
+      paidThrough: "COD",
+      paymentResponse: "",
+      orderStatus: "pending",
+    });
+
+    // 8. Push order to customer's profile
+    profile.orders.push(currentOrder._id as mongoose.Types.ObjectId);
+    await profile.save();
+
+    // 9. Return order info
+    return res.status(201).json(currentOrder);
+  } catch (error) {
+    console.error("CreateOrder error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Finally update orders to user account
+
+export const GetOrders = async (req: Request, res: Response) => {
+  //
+};
+
+export const GetOrderById = async (req: Request, res: Response) => {};
