@@ -32,7 +32,7 @@ const CustomerSchema = new Schema(
   },
   {
     toJSON: {
-      transform(doc, ret) {
+      transform(doc, ret: any) {
         delete ret.salt;
         delete ret.password;
         delete ret.__v;

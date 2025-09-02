@@ -4,7 +4,7 @@
   "description": "Backend API for food application",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node -T index.ts",
+    "start": "ts-node -T src/index.ts",
     "dev": "nodemon src/index.ts",
     "build": "tsc -p .",
     "postinstall": "npm run build"

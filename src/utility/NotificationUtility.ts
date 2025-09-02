@@ -8,6 +8,8 @@ if (!accountSid || !authToken || !fromAdminPhone) {
   throw new Error(
     "Twilio environment variables (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER) are not set. Please check your .env file."
   );
+} else {
+  console.log("--------------------------------------");
 }
 
 const client = new Twilio(accountSid, authToken);

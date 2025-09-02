@@ -45,7 +45,7 @@ const VendorSchema = new Schema(
     //transform to json for retrieve data
 
     toJSON: {
-      transform(doc, ret) {
+      transform(doc, ret: any) {
         delete ret.password;
         delete ret.salt;
         delete ret.__v;
