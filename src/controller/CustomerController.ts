@@ -251,6 +251,74 @@ export const EditCustomerProfile = async (req: Request, res: Response) => {
   }
 };
 
+// -------------------- card section ---------------------
+
+export const AddToCard = async (req: Request, res: Response) => {
+  const customer = req.user as CustomerDoc;
+
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("card.food");
+    let cardItem = Array();
+    const { _id, unit } = <OrderInputs>req.body;
+
+    const food = await Food.findById(_id);
+
+    if (food) {
+      if (profile != null) {
+        //check for card item
+        const cardItems = profile.card;
+        if (cardItems.length > 0) {
+          //check and update unit
+          const existingFoodItem = cardItems.filter((item) =>
+            item.food._id.equals(food._id)
+          );
+
+          if (existingFoodItem.length > 0) {
+            const index = cardItem.indexOf(existingFoodItem[0]);
+            if (unit > 0) {
+              cardItem[index] = { food, unit };
+            } else {
+              cardItem.splice(index, 1);
+            }
+          }
+        } else {
+          //add new item to card
+          cardItem.push({ food: food, unit: unit });
+        }
+
+        if (cardItem) {
+          profile.card = cardItem as any;
+          const cardResult = await profile.save();
+          return res.status(200).json(cardResult);
+        }
+      }
+    }
+  } else {
+    return res.status(404).json({ message: "Unable to Create card" });
+  }
+};
+export const GetCard = async (req: Request, res: Response) => {
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("card.food");
+    if (profile) {
+      return res.status(400).json({ message: "card is empty" });
+    }
+  }
+};
+export const DeleteCard = async (req: Request, res: Response) => {
+  const customer = req.user;
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("card.food");
+    if (profile != null) {
+      profile.card = [] as any;
+      const cardResult = await profile.save();
+      return res.status(200).json(cardResult.card);
+    }
+  }
+  return res.status(400).json({ message: "Card is already empty" });
+};
+
 // ----------------------- order section ---------------------
 export const CreateOrder = async (req: Request, res: Response) => {
   try {

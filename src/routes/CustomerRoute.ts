@@ -9,6 +9,9 @@ import {
   CreateOrder,
   GetOrders,
   GetOrderById,
+  AddToCard,
+  GetCard,
+  DeleteCard,
 } from "../controller";
 import { Authenticate } from "../middlewares/Controller";
 
@@ -46,6 +49,18 @@ router.get("/profile", (req: Request, res: Response, next: NextFunction) => {
 //profile update
 router.patch("/profile", (req: Request, res: Response, next: NextFunction) => {
   EditCustomerProfile(req, res).catch(next);
+});
+
+// ---------------------------- Card ------------------
+
+router.post("/card", (req: Request, res: Response, next: NextFunction) => {
+  AddToCard(req, res);
+});
+router.get("/card", (req: Request, res: Response, next: NextFunction) => {
+  GetCard(req, res);
+});
+router.delete("/card", (req: Request, res: Response, next: NextFunction) => {
+  DeleteCard(req, res);
 });
 
 // order
