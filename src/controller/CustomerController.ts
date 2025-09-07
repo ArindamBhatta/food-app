@@ -251,6 +251,7 @@ export const EditCustomerProfile = async (req: Request, res: Response) => {
   }
 };
 
+// ----------------------- order section ---------------------
 export const CreateOrder = async (req: Request, res: Response) => {
   try {
     // 1. Get current logged-in customer
@@ -307,12 +308,12 @@ export const CreateOrder = async (req: Request, res: Response) => {
       orderStatus: "pending",
     });
 
-    // 8. Push order to customer's profile
-    profile.orders.push(currentOrder._id as mongoose.Types.ObjectId);
-    await profile.save();
+    if (currentOrder) {
+      profile.orders.push(currentOrder._id as mongoose.Types.ObjectId);
+      const profileResponse = await profile.save();
 
-    // 9. Return order info
-    return res.status(201).json(currentOrder);
+      return res.status(200).json(profileResponse.orders);
+    }
   } catch (error) {
     console.error("CreateOrder error:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -320,9 +321,26 @@ export const CreateOrder = async (req: Request, res: Response) => {
 };
 
 // Finally update orders to user account
-
 export const GetOrders = async (req: Request, res: Response) => {
-  //
+  const customer = req.user as CustomerDoc;
+  if (customer) {
+    const profile = await Customer.findById(customer._id).populate("orders");
+    if (profile) {
+      return res.status(200).json(profile.orders);
+    } else {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+  } else {
+    return res.status(404).json({ message: "Customer not found" });
+  }
 };
 
-export const GetOrderById = async (req: Request, res: Response) => {};
+export const GetOrderById = async (req: Request, res: Response) => {
+  const orderId = req.params.id;
+  const order = await Order.findById(orderId).populate("items.food");
+  if (order) {
+    return res.status(200).json(order);
+  } else {
+    return res.status(404).json({ message: "Order not found" });
+  }
+};
