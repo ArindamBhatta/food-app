@@ -6,6 +6,7 @@ import { CreateFoodInput } from "../dto/Food.dto";
 import { Food, FoodDoc } from "../models/Food";
 import { AuthPayload } from "../dto/Auth.dto";
 import { VendorDoc } from "../models";
+import { Order } from "../models/Order";
 
 //if a user login token is generate and send to frontend
 export const VendorLogin = async (req: Request, res: Response) => {
@@ -164,7 +165,28 @@ export const getFood = async (req: Request, res: Response) => {
 export const GetCurrentOrder = async (req: Request, res: Response) => {
   const user = req.user;
   if (user) {
+    const orders = await Order.find({ vendorId: user._id }).populate(
+      "items.food"
+    );
+
+    if (orders !== null) {
+      return res.status(200).json(orders);
+    }
   }
+  return res.status(404).json({ message: "Orders not found" });
 };
-export const GetOrderDetails = async (req: Request, res: Response) => {};
+
+export const GetOrderDetails = async (req: Request, res: Response) => {
+  const orderId = req.params.id;
+  if (orderId) {
+    const order = await Order.findById({ orderID: orderId }).populate(
+      "items.food"
+    );
+
+    if (order !== null) {
+      return res.status(200).json(order);
+    }
+  }
+  return res.status(404).json({ message: "Orders not found" });
+};
 export const ProcessOrder = async (req: Request, res: Response) => {};

@@ -1,7 +1,8 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 interface OrderDoc extends Document {
   orderID: string; // 5678912
+  vendorId: Types.ObjectId; //vendor id
   items: [any]; //[{food, unit: 1}]
   totalAmount: number; //456
   orderDate: Date;
@@ -12,7 +13,8 @@ interface OrderDoc extends Document {
 
 const OrderSchema = new Schema(
   {
-    orderID: { type: String, require: true },
+    orderID: { type: String, require: true, unique: true },
+    vendorId: { type: Schema.Types.ObjectId, ref: "vendor", require: true },
     items: [
       {
         food: { type: Schema.Types.ObjectId, ref: "food", require: true },
