@@ -20,7 +20,7 @@ export class UserLoginInputs {
   @Length(6, 20)
   password: string;
 }
-
+//edit profile
 export class EditCustomerProfileInputs {
   @Length(3, 20)
   firstName: string;

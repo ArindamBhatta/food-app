@@ -8,8 +8,6 @@ if (!accountSid || !authToken || !fromAdminPhone) {
   throw new Error(
     "Twilio environment variables (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER) are not set. Please check your .env file."
   );
-} else {
-  console.log("--------------------------------------");
 }
 
 const client = new Twilio(accountSid, authToken);
@@ -19,7 +17,7 @@ const client = new Twilio(accountSid, authToken);
  */
 export const GenerateOpt = (): { otp: number; expiry: Date } => {
   const otp = Math.floor(100000 + Math.random() * 900000);
-  const expiry = new Date();
+  const expiry: Date = new Date();
   expiry.setTime(new Date().getTime() + 30 * 60 * 1000); // 30 minutes expiry
   return { otp, expiry };
 };

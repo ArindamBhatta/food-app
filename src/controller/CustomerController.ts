@@ -1,36 +1,45 @@
-import e, { Request, Response, NextFunction } from "express";
+// ------------------ IMPORTS ------------------
+import { Request, Response } from "express";
 import { validate } from "class-validator";
 import mongoose, { Types } from "mongoose";
-
 import { plainToClass, plainToInstance } from "class-transformer";
+
+// Data Transfer Objects (DTOs)
 import {
   CreateCustomerInput,
   EditCustomerProfileInputs,
   OrderInputs,
   UserLoginInputs,
 } from "../dto/Customer.dto";
+
+// Utility functions
 import {
-  GeneratedSalt,
-  GeneratePassword,
-  GenerateSignature,
-  ValidatePassword,
+  GeneratedSalt, //generate random salt
+  GeneratePassword, // hash password + salt
+  GenerateSignature, // create JWT token
+  ValidatePassword, // check password against hash
 } from "../utility";
+
+// OTP generator + sender
 import { GenerateOpt, onRequestOtp } from "../utility/NotificationUtility";
+
+// MongoDB models
 import { Customer, CustomerDoc } from "../models/Customer";
 import { Food } from "../models/Food";
 import { Order } from "../models/Order";
 
+// ------------------ AUTH SECTION ------------------
+
+//SIGNUP some data are placeholder to make signup smooth
 export const CustomerSignUp = async (req: Request, res: Response) => {
   try {
-    console.log("Incoming request body:", req.body);
-
-    // Step 1: Convert plain object to DTO instance
+    // Step 1: Convert plain request body -> DTO instance
     const customerInputs = plainToInstance(CreateCustomerInput, req.body);
 
-    // Step 2: Validate DTO instance
+    // Step 2: Validate DTO instance (class-validator rules)
     const inputErrors = await validate(customerInputs, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
+      whitelist: true, // only allow whitelisted properties
+      forbidNonWhitelisted: true, // reject unknown properties
       validationError: { target: false },
     });
 
@@ -41,26 +50,25 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
       });
     }
 
-    // Step 3: Extract fields
+    // Step 3: Extract required fields
     const { email, phone, password } = customerInputs;
-    console.log("Validated input:", email, phone, password);
 
-    // Step 4: Generate salt & hash password
-    const salt = await GeneratedSalt();
-    const hashedPassword = await GeneratePassword(password, salt);
+    // Step 4: Hash password with salt
+    const salt: string = await GeneratedSalt();
+    const hashedPassword: string = await GeneratePassword(password, salt);
 
     // Step 5: Generate OTP
     const { otp, expiry } = GenerateOpt();
-    console.log("Generated OTP:", otp, expiry);
 
+    // Step 6: Ensure no duplicate customer
     const existingCustomer = await Customer.findOne({ email: email });
 
     if (existingCustomer) {
       return res.status(400).json({ message: "Customer already exists" });
     }
 
-    // Step 6: Save customer
-    const result: CustomerDoc = await Customer.create({
+    // Step 7: Save customer in DB a placeholder for now
+    const customer: CustomerDoc = await Customer.create({
       email,
       password: hashedPassword,
       salt,
@@ -76,25 +84,25 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
       orders: [],
     });
 
-    if (!result) {
+    if (!customer) {
       return res.status(400).json({ message: "Something went wrong" });
     }
 
-    // Step 7: Send OTP
+    // Step 8: Send OTP
     await onRequestOtp(otp, phone);
 
-    // Step 8: Generate JWT
+    // Step 9: Generate JWT
     const signature: string = GenerateSignature({
-      _id: (result._id as Types.ObjectId).toString(),
-      email: result.email,
-      verified: result.verified,
+      _id: (customer._id as Types.ObjectId).toString(),
+      email: customer.email,
+      verified: customer.verified,
     });
 
-    // Step 9: Send response
+    // Step 10: Generate jwt
     res.status(201).json({
       signature,
-      verified: result.verified,
-      email: result.email,
+      verified: customer.verified,
+      email: customer.email,
     });
   } catch (error) {
     console.error("Customer signup error:", error);
@@ -104,6 +112,56 @@ export const CustomerSignUp = async (req: Request, res: Response) => {
   }
 };
 
+//  VERIFY OTP but why?
+/* 
+Backend saves user with verified: false and generates OTP
+OTP is sent to the user’s phone
+Backend also issues a JWT (but it says verified: false inside)
+OTP verification happens right after signup — usually before the user can fully use the app.
+When the user logs in again later, they don’t need OTP unless you implement 2FA or their account is still verified: false.
+That’s why the verified flag in JWT is important:
+If false → app knows user still needs OTP verification.
+If true → user is fully activated and can use all features.
+*/
+export const CustomerOTPVerify = async (req: Request, res: Response) => {
+  // send the otp again
+  const { otp } = req.body;
+
+  const customer = req.user as CustomerDoc;
+
+  if (customer) {
+    const customerProfile = await Customer.findById(customer._id);
+
+    if (customerProfile) {
+      //if otp not expired
+      if (
+        customerProfile.otp === parseInt(otp) &&
+        customerProfile.otp_expiry >= new Date()
+      ) {
+        customerProfile.verified = true;
+        const updatedCustomer = await customerProfile.save();
+
+        const signature = GenerateSignature({
+          _id: (updatedCustomer._id as Types.ObjectId).toString(),
+          email: updatedCustomer.email,
+          verified: updatedCustomer.verified,
+        });
+
+        return res.status(201).json({
+          signature: signature,
+          verified: updatedCustomer.verified,
+          email: updatedCustomer.email,
+        });
+      } else {
+        return res.status(400).json({ message: "Invalid OTP or Expired" });
+      }
+    } else {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+  }
+};
+
+//Login
 export const CustomerLogin = async (req: Request, res: Response) => {
   const loginInput = plainToInstance(UserLoginInputs, req.body);
 
@@ -148,42 +206,7 @@ export const CustomerLogin = async (req: Request, res: Response) => {
   }
 };
 
-export const CustomerVerify = async (req: Request, res: Response) => {
-  const { otp } = req.body;
-  const customer = req.user as CustomerDoc;
-
-  if (customer) {
-    const customerProfile = await Customer.findById(customer._id);
-
-    if (customerProfile) {
-      if (
-        customerProfile.otp === parseInt(otp) &&
-        customerProfile.otp_expiry >= new Date()
-      ) {
-        //modify boolean
-        customerProfile.verified = true;
-        const updatedCustomer = await customerProfile.save();
-
-        const signature = GenerateSignature({
-          _id: (updatedCustomer._id as Types.ObjectId).toString(),
-          email: updatedCustomer.email,
-          verified: updatedCustomer.verified,
-        });
-
-        return res.status(201).json({
-          signature: signature,
-          verified: updatedCustomer.verified,
-          email: updatedCustomer.email,
-        });
-      } else {
-        return res.status(400).json({ message: "Invalid OTP or Expired" });
-      }
-    } else {
-      return res.status(404).json({ message: "Customer not found" });
-    }
-  }
-};
-
+// REQUEST OTP AGAIN
 export const RequestOtp = async (req: Request, res: Response) => {
   const customer = req.user as CustomerDoc;
 
@@ -208,7 +231,7 @@ export const RequestOtp = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "Customer not found" });
   }
 };
-
+//fill the blank fields
 export const getCustomerProfile = async (req: Request, res: Response) => {
   const customer = req.user as CustomerDoc;
 
@@ -253,50 +276,67 @@ export const EditCustomerProfile = async (req: Request, res: Response) => {
 
 // -------------------- card section ---------------------
 
-export const AddToCard = async (req: Request, res: Response) => {
+// Controller to add/update/remove items from a customer's shopping cart
+export const AddToCart = async (req: Request, res: Response) => {
+  // The logged-in customer (coming from authentication middleware)
   const customer = req.user as CustomerDoc;
 
-  if (customer) {
-    const profile = await Customer.findById(customer._id).populate("card.food");
-    let cardItem = Array();
-    const { _id, unit } = <OrderInputs>req.body;
+  if (!customer) {
+    // If no customer found in request
+    return res.status(404).json({ message: "Unable to create cart" });
+  }
 
-    const food = await Food.findById(_id);
+  // Find the customer in DB and populate 'cart.food' with actual Food documents
+  const profile = await Customer.findById(customer._id).populate("cart.food");
 
-    if (food) {
-      if (profile != null) {
-        //check for card item
-        const cardItems = profile.card;
-        if (cardItems.length > 0) {
-          //check and update unit
-          const existingFoodItem = cardItems.filter((item) =>
-            item.food._id.equals(food._id)
-          );
+  if (!profile) {
+    return res.status(404).json({ message: "Customer not found" });
+  }
 
-          if (existingFoodItem.length > 0) {
-            const index = cardItem.indexOf(existingFoodItem[0]);
-            if (unit > 0) {
-              cardItem[index] = { food, unit };
-            } else {
-              cardItem.splice(index, 1);
-            }
-          }
-        } else {
-          //add new item to card
-          cardItem.push({ food: food, unit: unit });
-        }
+  // Extract foodId (_id) and unit (quantity) from request body
+  const { _id, unit } = <OrderInputs>req.body;
 
-        if (cardItem) {
-          profile.card = cardItem as any;
-          const cardResult = await profile.save();
-          return res.status(200).json(cardResult);
-        }
-      }
+  // Check if the food exists in the Food collection
+  const food = await Food.findById(_id);
+  if (!food) {
+    return res.status(404).json({ message: "Food not found" });
+  }
+
+  // Work with the customer's current cart (array of items)
+  let cartItems = profile.cart;
+
+  // Check if this food item already exists in the cart
+  const existingFoodItem = cartItems.find((item) =>
+    item.food._id.equals(food._id)
+  );
+
+  if (existingFoodItem) {
+    // If the item already exists in cart
+
+    if (unit > 0) {
+      // Update the quantity
+      existingFoodItem.unit = unit;
+    } else {
+      // If unit <= 0, remove the item from the cart
+      cartItems = cartItems.filter(
+        (item) => !item.food._id.equals(food._id)
+      ) as any;
     }
   } else {
-    return res.status(404).json({ message: "Unable to Create card" });
+    // If the item is not already in the cart, add it
+    if (unit > 0) {
+      cartItems.push({ food, unit });
+    }
   }
+
+  // Save the updated cart back to the customer profile
+  profile.cart = cartItems;
+  const updatedProfile = await profile.save();
+
+  // Return updated cart to the client
+  return res.status(200).json(updatedProfile);
 };
+
 export const GetCard = async (req: Request, res: Response) => {
   const customer = req.user;
   if (customer) {
@@ -306,14 +346,15 @@ export const GetCard = async (req: Request, res: Response) => {
     }
   }
 };
+
 export const DeleteCard = async (req: Request, res: Response) => {
   const customer = req.user;
   if (customer) {
     const profile = await Customer.findById(customer._id).populate("card.food");
     if (profile != null) {
-      profile.card = [] as any;
+      profile.cart = [] as any;
       const cardResult = await profile.save();
-      return res.status(200).json(cardResult.card);
+      return res.status(200).json(cardResult.cart);
     }
   }
   return res.status(400).json({ message: "Card is already empty" });

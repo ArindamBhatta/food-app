@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { EditVendorInputs, VendorLoginInputs, VendorPayload } from "../dto";
 import { FindVendor } from "./AdminController";
 import { GenerateSignature, ValidatePassword } from "../utility";
@@ -158,3 +158,13 @@ export const getFood = async (req: Request, res: Response) => {
     return res.json({ message: "Foods information not found" });
   }
 };
+
+// ---
+
+export const GetCurrentOrder = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (user) {
+  }
+};
+export const GetOrderDetails = async (req: Request, res: Response) => {};
+export const ProcessOrder = async (req: Request, res: Response) => {};

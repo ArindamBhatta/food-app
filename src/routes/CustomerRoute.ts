@@ -2,14 +2,14 @@ import express, { Request, Response, NextFunction } from "express";
 import {
   CustomerSignUp,
   CustomerLogin,
-  CustomerVerify,
+  CustomerOTPVerify,
   EditCustomerProfile,
   getCustomerProfile,
   RequestOtp,
   CreateOrder,
   GetOrders,
   GetOrderById,
-  AddToCard,
+  AddToCart,
   GetCard,
   DeleteCard,
 } from "../controller";
@@ -33,7 +33,7 @@ router.use(Authenticate);
 
 //verify customer account
 router.post("/verify", (req: Request, res: Response, next: NextFunction) => {
-  CustomerVerify(req, res).catch(next);
+  CustomerOTPVerify(req, res).catch(next);
 });
 
 //----------- Request otp --------
@@ -54,7 +54,7 @@ router.patch("/profile", (req: Request, res: Response, next: NextFunction) => {
 // ---------------------------- Card ------------------
 
 router.post("/card", (req: Request, res: Response, next: NextFunction) => {
-  AddToCard(req, res);
+  AddToCart(req, res);
 });
 router.get("/card", (req: Request, res: Response, next: NextFunction) => {
   GetCard(req, res);
@@ -63,7 +63,7 @@ router.delete("/card", (req: Request, res: Response, next: NextFunction) => {
   DeleteCard(req, res);
 });
 
-// order
+// ------------------------- order -------------------------------
 router.post(
   "/create-order",
   (req: Request, res: Response, next: NextFunction) => {
