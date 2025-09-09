@@ -189,4 +189,23 @@ export const GetOrderDetails = async (req: Request, res: Response) => {
   }
   return res.status(404).json({ message: "Orders not found" });
 };
-export const ProcessOrder = async (req: Request, res: Response) => {};
+export const ProcessOrder = async (req: Request, res: Response) => {
+  const orderId = req.params.id;
+
+  const { status, remarks, time } = req.body; //Accept //Reject //Under-process, //ready
+  if (orderId) {
+    const order = await Order.findById({ orderID: orderId }).populate("food");
+    if (order !== null) {
+      order.orderStatus = status;
+      order.remarks = remarks;
+      if (time) {
+        order.readyTime = time;
+      }
+      const orderResult = await order.save();
+      if (orderResult != null) {
+        return res.status(200).json(orderResult);
+      }
+    }
+  }
+  return res.status(404).json({ message: "unable to process order" });
+};
