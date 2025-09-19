@@ -15,7 +15,7 @@ export default async (app: Application) => {
   const imagePath = path.join(__dirname, "../images");
   app.use("/images", express.static(imagePath));
 
-  app.use("/admin", AdminRoute);
+  app.use("/admin", AdminRoute); //create vendor, get all vendors, get vendor by id
   app.use("/vendor", VendorRoute);
   app.use("/customer", CustomerRoute);
   app.use(ShoppingRoute);

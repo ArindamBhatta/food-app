@@ -50,7 +50,7 @@ router.get(
   }
 );
 
-//update profile
+//update profile name, address, phone, foodType
 router.patch(
   "/profile",
   async (req: Request, res: Response, next: NextFunction) => {

@@ -34,7 +34,7 @@ const CustomerSchema = new Schema(
     //it's not for many to many relationship we don't want to create card model
     cart: [
       {
-        foodId: { type: Schema.Types.ObjectId, ref: "food", require: true },
+        food: { type: Schema.Types.ObjectId, ref: "food", require: true },
         unit: { type: Number, require: true },
       },
     ],

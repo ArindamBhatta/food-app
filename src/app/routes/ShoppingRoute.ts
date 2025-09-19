@@ -11,6 +11,14 @@ const router = express.Router();
 
 // ---------- Food Availability --------------
 
+// ------- Find Restorenet by Id vendor Id---------
+router.get(
+  "/restaurant/:id",
+  (req: Request, res: Response, next: NextFunction) => {
+    RestaurantById(req, res).catch(next);
+  }
+);
+
 router.get(
   "/foods/:pincode",
   (req: Request, res: Response, next: NextFunction) => {
@@ -39,14 +47,6 @@ router.get(
   "/search/:pincode",
   (req: Request, res: Response, next: NextFunction) => {
     SearchFoods(req, res).catch(next);
-  }
-);
-
-// ------- Find Restorenet by Id vendor Id---------
-router.get(
-  "/restaurant/:id",
-  (req: Request, res: Response, next: NextFunction) => {
-    RestaurantById(req, res).catch(next);
   }
 );
 

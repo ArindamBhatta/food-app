@@ -245,7 +245,7 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "Customer not found" });
   }
 };
-
+// -------------------- complete this code 🏹🏹🏹🏹---------------------
 export const EditCustomerProfile = async (req: Request, res: Response) => {
   const customer = req.user as CustomerDoc;
 
@@ -334,23 +334,24 @@ export const AddToCart = async (req: Request, res: Response) => {
   const updatedProfile = await profile.save();
 
   // Return updated cart to the client
-  return res.status(200).json(updatedProfile);
+  return res.status(200).json(cartItems);
 };
 
 export const GetCard = async (req: Request, res: Response) => {
   const customer = req.user;
   if (customer) {
-    const profile = await Customer.findById(customer._id).populate("card.food");
+    const profile = await Customer.findById(customer._id).populate("cart.food");
     if (profile) {
-      return res.status(400).json({ message: "card is empty" });
+      return res.status(200).json(profile.cart);
     }
   }
+  return res.status(400).json({ message: "Card is empty" });
 };
 
 export const DeleteCard = async (req: Request, res: Response) => {
   const customer = req.user;
   if (customer) {
-    const profile = await Customer.findById(customer._id).populate("card.food");
+    const profile = await Customer.findById(customer._id).populate("cart.food");
     if (profile != null) {
       profile.cart = [] as any;
       const cardResult = await profile.save();
@@ -421,7 +422,7 @@ export const CreateOrder = async (req: Request, res: Response) => {
       profile.orders.push(currentOrder._id as mongoose.Types.ObjectId);
       const profileResponse = await profile.save();
 
-      return res.status(200).json(profileResponse.orders);
+      return res.status(200).json({ currentOrder, profileResponse });
     }
   } catch (error) {
     console.error("CreateOrder error:", error);
@@ -429,7 +430,6 @@ export const CreateOrder = async (req: Request, res: Response) => {
   }
 };
 
-// Finally update orders to user account
 export const GetOrders = async (req: Request, res: Response) => {
   const customer = req.user as CustomerDoc;
   if (customer) {

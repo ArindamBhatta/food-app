@@ -54,29 +54,29 @@ router.patch("/profile", (req: Request, res: Response, next: NextFunction) => {
 // ---------------------------- Card ------------------
 
 router.post("/card", (req: Request, res: Response, next: NextFunction) => {
-  AddToCart(req, res);
+  AddToCart(req, res).catch(next);
 });
 router.get("/card", (req: Request, res: Response, next: NextFunction) => {
-  GetCard(req, res);
+  GetCard(req, res).catch(next);
 });
 router.delete("/card", (req: Request, res: Response, next: NextFunction) => {
-  DeleteCard(req, res);
+  DeleteCard(req, res).catch(next);
 });
 
 // ------------------------- order -------------------------------
 router.post(
   "/create-order",
   (req: Request, res: Response, next: NextFunction) => {
-    CreateOrder(req, res);
+    CreateOrder(req, res).catch(next);
   }
 );
 
 router.get("/orders", (req: Request, res: Response, next: NextFunction) => {
-  GetOrders(req, res);
+  GetOrders(req, res).catch(next);
 });
-
+// needs the order id
 router.get("/order/:id", (req: Request, res: Response, next: NextFunction) => {
-  GetOrderById(req, res);
+  GetOrderById(req, res).catch(next);
 });
 
 export { router as CustomerRoute };

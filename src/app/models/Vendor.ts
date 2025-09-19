@@ -12,7 +12,7 @@ interface VendorDoc extends Document {
   password: string;
   salt: string;
   serviceAvailable: boolean;
-  coverImages: [string];
+  coverImages: [string]; //shop banner
   rating: number;
   foods: [FoodDoc]; //store the food doc
 }
