@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { FoodDoc } from "./Food";
 
+// 1. TypeScript Interface - Defines the shape of your data
 interface VendorDoc extends Document {
   name: string;
   ownerName: string;
@@ -17,6 +18,7 @@ interface VendorDoc extends Document {
   foods: [FoodDoc]; //store the food doc
 }
 
+//2. Mongoose Schema - Defines database structure and validation
 const VendorSchema = new Schema(
   {
     name: { type: String, require: true },
@@ -57,3 +59,21 @@ const VendorSchema = new Schema(
 const Vendor = mongoose.model<VendorDoc>("vendor", VendorSchema);
 
 export { Vendor, VendorDoc };
+
+/*
+1. VendorDoc Interface:
+   - Provides TypeScript type safety
+   - Defines what properties a vendor document should have
+   - Extends Document (from Mongoose) to get _id, save(), etc.
+
+2. VendorSchema:
+   - Defines the actual database structure
+   - Sets validation rules (required, default values)
+   - Configures JSON transformation (hides password, salt)
+   - Adds timestamps (createdAt, updatedAt)
+
+3. Vendor Model:
+   - The actual Mongoose model you use for database operations
+   - Combines the schema with the TypeScript interface
+   - Provides methods like .create(), .find(), .findById(), etc.
+*/

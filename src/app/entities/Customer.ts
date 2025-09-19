@@ -14,7 +14,7 @@ interface CustomerDoc extends Document {
   lat: number;
   lng: number;
   cart: [any];
-  orders: Types.ObjectId[]; // 👈 explicitly ObjectId[];
+  orders: Types.ObjectId[];
 }
 
 const CustomerSchema = new Schema(

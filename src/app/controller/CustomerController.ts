@@ -24,7 +24,7 @@ import {
 import { GenerateOpt, onRequestOtp } from "../utility/NotificationUtility";
 
 // MongoDB models
-import { Customer, CustomerDoc } from "../models/Customer";
+import { Customer, CustomerDoc } from "../models/User";
 import { Food } from "../models/Food";
 import { Order } from "../models/Order";
 
