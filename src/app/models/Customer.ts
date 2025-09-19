@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import { OrderDoc } from "./Order";
 
 interface CustomerDoc extends Document {
   email: string;
@@ -32,6 +31,7 @@ const CustomerSchema = new Schema(
     otp_expiry: { type: Date, required: true },
     lat: { type: Number },
     lng: { type: Number },
+    //it's not for many to many relationship we don't want to create card model
     cart: [
       {
         foodId: { type: Schema.Types.ObjectId, ref: "food", require: true },

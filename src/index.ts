@@ -2,8 +2,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import App from "./service/ExpressApp";
-import dbConnection from "./service/Database";
+import App from "./app/service/ExpressApp";
+import dbConnection from "./infrastructure/database";
 
 const StartServer = async () => {
   const app = express();
