@@ -1,4 +1,4 @@
-import { Vendor, VendorDoc } from "../../entities";
+import { VendorDoc } from "../../entities";
 import { CreateVendorInput } from "../../dto";
 
 export default interface IVendorRepo {

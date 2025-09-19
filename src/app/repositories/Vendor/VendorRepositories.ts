@@ -1,84 +1,74 @@
 import { Vendor, VendorDoc } from "../../entities";
-import { CreateVendorInput } from "../../dto";
 
-export class VendorRepository {
-  /**
-   * Find vendor by ID or email
-   */
-  static async findVendor(
-    id?: string,
-    email?: string
-  ): Promise<VendorDoc | null> {
-    if (email) {
-      return await Vendor.findOne({ email: email });
-    } else if (id) {
-      return await Vendor.findById(id);
-    }
-    return null;
+import IVendorRepo, {
+  IFindVendorByIdParams,
+  ICreateVendorParams,
+  IUpdateVendorParams,
+  IDeleteVendorParams,
+  IExistsByEmailParams,
+  IFindVendorParams,
+} from "./VendorRepository.interface";
+
+export default class VendorRepo implements IVendorRepo {
+  private model: typeof Vendor;
+
+  constructor(model: typeof Vendor) {
+    this.model = model;
   }
 
-  /**
-   * Create a new vendor
-   */
-  static async createVendor(
-    vendorData: CreateVendorInput & {
-      password: string;
-      salt: string;
+  findVendor = async (
+    payload: IFindVendorParams
+  ): Promise<VendorDoc | null> => {
+    if (payload.email) {
+      return await this.model.findOne({ email: payload.email });
+    } else if (payload.id) {
+      return await this.model.findById(payload.id);
     }
-  ): Promise<VendorDoc> {
-    return await Vendor.create({
-      name: vendorData.name,
-      address: vendorData.address,
-      pincode: vendorData.pincode,
-      foodType: vendorData.foodType,
-      email: vendorData.email,
-      password: vendorData.password,
-      salt: vendorData.salt,
-      ownerName: vendorData.ownerName,
-      phone: vendorData.phone,
+    return null;
+  };
+
+  createVendor = async (payload: ICreateVendorParams): Promise<VendorDoc> => {
+    return await this.model.create({
+      name: payload.name,
+      address: payload.address,
+      pincode: payload.pincode,
+      foodType: payload.foodType,
+      email: payload.email,
+      password: payload.password,
+      salt: payload.salt,
+      ownerName: payload.ownerName,
+      phone: payload.phone,
       rating: 0,
       serviceAvailable: false,
       coverImages: [],
       foods: [],
     });
-  }
+  };
 
-  /**
-   * Get all vendors
-   */
-  static async findAllVendors(): Promise<VendorDoc[]> {
-    return await Vendor.find();
-  }
+  findAllVendors = async (): Promise<VendorDoc[]> => {
+    return await this.model.find();
+  };
 
-  /**
-   * Find vendor by ID
-   */
-  static async findVendorById(id: string): Promise<VendorDoc | null> {
-    return await Vendor.findById(id);
-  }
+  findVendorById = async (
+    payload: IFindVendorByIdParams
+  ): Promise<VendorDoc | null> => {
+    return await this.model.findById(payload.id);
+  };
 
-  /**
-   * Update vendor by ID
-   */
-  static async updateVendor(
-    id: string,
-    updateData: Partial<VendorDoc>
-  ): Promise<VendorDoc | null> {
-    return await Vendor.findByIdAndUpdate(id, updateData, { new: true });
-  }
-
-  /**
-   * Delete vendor by ID
-   */
-  static async deleteVendor(id: string): Promise<VendorDoc | null> {
-    return await Vendor.findByIdAndDelete(id);
-  }
-
-  /**
-   * Check if vendor exists by email
-   */
-  static async existsByEmail(email: string): Promise<boolean> {
-    const vendor = await Vendor.findOne({ email });
+  updateVendor = async (
+    payload: IUpdateVendorParams
+  ): Promise<VendorDoc | null> => {
+    return await this.model.findByIdAndUpdate(payload.id, payload.updateData, {
+      new: true,
+    });
+  };
+  deleteVendor = async (
+    payload: IDeleteVendorParams
+  ): Promise<VendorDoc | null> => {
+    return await this.model.findByIdAndDelete(payload.id);
+  };
+  existsByEmail = async (payload: IExistsByEmailParams): Promise<boolean> => {
+    const vendor = await this.model.findOne({ email: payload.email });
     return vendor !== null;
-  }
+  };
 }
