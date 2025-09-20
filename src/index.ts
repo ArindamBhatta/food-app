@@ -1,20 +1,20 @@
 import dotenv from "dotenv";
-dotenv.config();
-
+import cors from "cors";
+import bodyParser from "body-parser";
 import express from "express";
-import App from "./app/services/ExpressApp";
-import dbConnection from "./infrastructure/database";
+import apiRouter from "./api";
 
-const StartServer = async () => {
-  const app = express();
-  const port = process.env.PORT || 8000;
+dotenv.config();
+const app = express();
+const port = process.env.PORT || 8000;
+// Enable CORS
+app.use(cors());
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
-  await dbConnection();
-  await App(app);
+// API routes
+app.use("/api", apiRouter());
 
-  app.listen(port, () => {
-    console.log(`✅ Server is running on port ${port}`);
-  });
-};
-
-StartServer();
+app.listen(port, () => {
+  console.log(`✅ Server is running on port ${port}`);
+});
