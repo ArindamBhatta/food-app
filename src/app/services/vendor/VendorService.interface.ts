@@ -30,3 +30,8 @@ export interface IUpdateVendorServiceParams {
 export interface IDeleteVendorServiceParams {
   id: string;
 }
+
+export interface IToggleVendorServiceParams {
+  id: string;
+  serviceAvailable: boolean;
+}

@@ -5,6 +5,7 @@ import IVendorService, {
   IGetVendorServiceParams,
   IUpdateVendorServiceParams,
   IDeleteVendorServiceParams,
+  IToggleVendorServiceParams,
 } from "./VendorService.interface";
 
 import { Vendor } from "../../entities";
@@ -45,5 +46,9 @@ export default class VendorService implements IVendorService {
 
   deleteVendor = async (payload: IDeleteVendorServiceParams) => {
     return this.vendorRepo.deleteVendor(payload);
+  };
+
+  toggleVendorService = async (payload: IToggleVendorServiceParams) => {
+    return this.vendorRepo.toggleService(payload);
   };
 }

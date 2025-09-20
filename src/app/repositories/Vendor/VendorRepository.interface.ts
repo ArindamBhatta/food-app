@@ -37,3 +37,8 @@ export interface IDeleteVendorParams {
 export interface IExistsByEmailParams {
   email: string;
 }
+
+export interface IToggleVendorRepoParams {
+  id: string;
+  serviceAvailable: boolean;
+}

@@ -7,6 +7,7 @@ import IVendorRepo, {
   IDeleteVendorParams,
   IExistsByEmailParams,
   IFindVendorParams,
+  IToggleVendorRepoParams,
 } from "./VendorRepository.interface";
 
 export default class VendorRepo implements IVendorRepo {
@@ -67,8 +68,17 @@ export default class VendorRepo implements IVendorRepo {
   ): Promise<VendorDoc | null> => {
     return await this.model.findByIdAndDelete(payload.id);
   };
+
   existsByEmail = async (payload: IExistsByEmailParams): Promise<boolean> => {
     const vendor = await this.model.findOne({ email: payload.email });
     return vendor !== null;
+  };
+
+  toggleService = async (payload: IToggleVendorRepoParams) => {
+    return await this.model.findByIdAndUpdate(
+      payload.id,
+      { serviceAvailable: payload.serviceAvailable },
+      { new: true }
+    );
   };
 }
