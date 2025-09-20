@@ -1,11 +1,11 @@
-import express, { Request, Response, IRoute } from "express";
+import express, { Request, Response, IRouter } from "express";
 import { HttpMethod, ApiVersion } from "../constants";
 import { auth } from "./middleware/auth";
-import route from "./route";
+import routes from "./route";
 
 const router = express.Router();
 
-export default (): IRoute => {
+export default (): IRouter => {
   const mwCtxForPost = {};
   const mwCtxForGet = {};
 
@@ -25,13 +25,40 @@ export default (): IRoute => {
 
     switch (apiVersion) {
       case ApiVersion.V1:
-        serviceDef = route[method]?.[serviceName];
-        break;
       case ApiVersion.V2:
-        serviceDef = route[method]?.[serviceName];
+        serviceDef = routes[method]?.[serviceName];
         break;
       default:
-        serviceDef = undefined;
+        return res.status(400).json({ message: "Unsupported API version" });
+    }
+
+    if (!serviceDef) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    try {
+      const response = await serviceDef({ req, res });
+      res.send(response);
+    } catch (error) {
+      console.error("Error calling service:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   };
+
+  router.get(
+    "/:apiversion/:service",
+    ...getMWs,
+    async (req: Request, res: Response) => {
+      await callService(HttpMethod.GET, req, res);
+    }
+  );
+  router.post(
+    "/:apiversion/:service",
+    ...postMWs,
+    async (req: Request, res: Response) => {
+      await callService(HttpMethod.POST, req, res);
+    }
+  );
+
+  return router;
 };
