@@ -7,7 +7,7 @@ export interface VendorPayload {
   email: string;
   name: string;
   ownerName: string;
-  foodType: string;
+  foodType: string[];
   role: 'vendor';
   serviceAvailable: boolean;
 }
@@ -16,7 +16,7 @@ export interface VendorPayload {
 export class CreateVendorDTO {
   name: string;
   ownerName: string;
-  foodType: string;
+  foodType: string[];
   pincode: string;
   address: string;
   phone: string;
@@ -73,17 +73,20 @@ export class CreateVendorDTO {
     }
 
     // Validate foodType
-    if (
-      !this.foodType ||
-      typeof this.foodType !== "string" ||
-      this.foodType.trim().length === 0
-    ) {
-      errors.push("Food type is required");
+    if (!Array.isArray(this.foodType) || this.foodType.length === 0) {
+      errors.push("At least one food type is required");
     } else {
-      const validFoodTypes = ["veg", "non-veg", "both"];
-      if (!validFoodTypes.includes(this.foodType.toLowerCase())) {
-        errors.push("Food type must be one of: veg, non-veg, both");
+      const validFoodTypes = ["veg", "non-veg"];
+      const invalidTypes = this.foodType.filter(
+        (type) => typeof type === 'string' && !validFoodTypes.includes(type.toLowerCase())
+      );
+      
+      if (invalidTypes.length > 0) {
+        errors.push(`Invalid food type(s): ${invalidTypes.join(", ")}. Must be one of: ${validFoodTypes.join(", ")}`);
       }
+      
+      // Ensure all food types are unique and in lowercase
+      this.foodType = [...new Set(this.foodType.map(type => type.toLowerCase()))];
     }
 
     // Validate email
@@ -135,7 +138,7 @@ export class CreateVendorDTO {
     this.address = this.address.trim();
     this.ownerName = this.ownerName.trim();
     this.email = this.email.toLowerCase().trim();
-    this.foodType = this.foodType.toLowerCase();
+    // foodType is already processed in the validation step
   }
 
   private isValidEmail(email: string): boolean {
@@ -158,7 +161,7 @@ export class VendorResponseDTO {
   phone: string;
   address: string;
   pincode: string;
-  foodType: string;
+  foodType: string[];
   rating: number;
   serviceAvailable: boolean;
   createdAt?: Date;
@@ -185,7 +188,7 @@ export class UpdateVendorDTO {
   name?: string;
   address?: string;
   pincode?: string;
-  foodType?: string;
+  foodType?: string[];
   ownerName?: string;
   phone?: string;
   serviceAvailable?: boolean;
@@ -235,12 +238,19 @@ export class UpdateVendorDTO {
     }
 
     if (this.foodType !== undefined) {
-      if (typeof this.foodType !== "string") {
-        errors.push("Food type must be a string");
+      if (!Array.isArray(this.foodType) || this.foodType.length === 0) {
+        errors.push("At least one food type is required");
       } else {
-        const validFoodTypes = ["veg", "non-veg", "both"];
-        if (!validFoodTypes.includes(this.foodType.toLowerCase())) {
-          errors.push("Food type must be one of: veg, non-veg, both");
+        const validFoodTypes = ["veg", "non-veg"];
+        const invalidTypes = this.foodType.filter(
+          (type) => typeof type === 'string' && !validFoodTypes.includes(type.toLowerCase())
+        );
+        
+        if (invalidTypes.length > 0) {
+          errors.push(`Invalid food type(s): ${invalidTypes.join(", ")}. Must be one of: ${validFoodTypes.join(", ")}`);
+        } else {
+          // Ensure all food types are unique and in lowercase
+          this.foodType = [...new Set(this.foodType.map(type => type.toLowerCase()))];
         }
       }
     }
@@ -283,6 +293,6 @@ export class UpdateVendorDTO {
     if (this.name) this.name = this.name.trim();
     if (this.address) this.address = this.address.trim();
     if (this.ownerName) this.ownerName = this.ownerName.trim();
-    if (this.foodType) this.foodType = this.foodType.toLowerCase();
+    // foodType is already processed in the validation step
   }
 }

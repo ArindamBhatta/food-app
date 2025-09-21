@@ -1,9 +1,11 @@
+import { db } from "../../infrastructure/database";
 import { Vendor } from "../entities";
 
-// import VendorRepo from "./Vendor/VendorRepositories";
+// Initialize repositories
 import AdminRepo from "./AdminRepo/AdminRepo";
 
-// const vendorRepo = new VendorRepo(Vendor);
+// Create repository instances
 const adminRepo = new AdminRepo(Vendor);
 
+// Export repositories and db connection
 export { adminRepo };

@@ -4,6 +4,7 @@ import { IAdminController } from "./AdminController.interface";
 import { CreateVendorDTO, VendorResponseDTO } from "../../dto/Vendor.dto";
 import { ControllerPayload } from "../../../constants";
 import { ValidationError, BusinessLogicError } from "../../utils/Error";
+import { VendorDoc } from "../../entities";
 
 export default class AdminController implements IAdminController {
   private adminService: AdminService;
@@ -18,10 +19,12 @@ export default class AdminController implements IAdminController {
       const createVendorDTO = new CreateVendorDTO(payload.req.body);
 
       // Call service layer
-      const vendor = await this.adminService.createVendor(createVendorDTO);
+      const vendor: VendorDoc = await this.adminService.createVendor(
+        createVendorDTO
+      );
 
       // Convert to response DTO to exclude sensitive data
-      const vendorResponse = new VendorResponseDTO(vendor);
+      const vendorResponse: VendorResponseDTO = new VendorResponseDTO(vendor);
 
       return payload.res.status(201).json({
         success: true,
