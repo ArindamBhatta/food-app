@@ -1,18 +1,15 @@
 import { VendorDoc } from "../../entities";
+import { CreateVendorDTO } from "../../dto/Vendor.dto";
 
 export default interface IAdminRepo {
-  createVendor: (payload: ICreateVendorParams) => Promise<VendorDoc | null>;
+  createVendor: (payload: ICreateVendorRepoParams) => Promise<VendorDoc>;
 }
 
-//dto
-export interface ICreateVendorParams {
-  name: string;
-  ownerName: string;
-  foodType: [string];
-  pincode: string;
-  address: string;
-  phone: string;
-  email: string;
+export interface ICreateVendorRepoParams extends Omit<CreateVendorDTO, 'password'> {
+  password: string; // This will be the hashed password
   salt: string;
-  password: string;
+  serviceAvailable?: boolean;
+  rating?: number;
+  coverImages?: string[];
+  foods?: string[];
 }
