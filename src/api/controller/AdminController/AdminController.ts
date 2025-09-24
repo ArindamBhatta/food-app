@@ -14,7 +14,9 @@ export default class AdminController implements IAdminController {
     this.adminService = adminService;
   }
 
-  createVendor = async (payload: ControllerPayload): Promise<Response> => {
+  createVendor = async (
+    payload: ControllerPayload
+  ): Promise<VendorResponseDTO> => {
     try {
       // step 1: - take the request body from frontend and create a instance of CreateVendorDTO
       const createVendorDTO: CreateVendorDTO = new CreateVendorDTO(
@@ -28,38 +30,33 @@ export default class AdminController implements IAdminController {
 
       // step 3: - convert to response dto to exclude sensitive data
       const vendorResponse: VendorResponseDTO = new VendorResponseDTO(vendor);
-
-      return payload.res.status(201).json({
-        success: true,
-        message: "Vendor created successfully!",
-        data: vendorResponse,
-      });
+      return vendorResponse;
     } catch (error) {
-      console.error("Error in AdminController.createVendor:", error);
-
-      if (error instanceof ValidationError) {
-        return payload.res.status(400).json({
-          success: false,
-          message: "Validation failed",
-          errors: error.errors,
-        });
-      }
-
-      if (error instanceof BusinessLogicError) {
-        return payload.res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      }
-
-      return payload.res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
+      logger.error("Error in AdminController.createVendor:", error);
+      throw new Error("Failed to create vendor");
     }
   };
 
-  getVendorById = async (payload: ControllerPayload) => {
+  getAllVendor = async (
+    payload: ControllerPayload
+  ): Promise<VendorResponseDTO[]> => {
+    try {
+      const vendors: VendorDoc[] = await this.adminService.getAllVendor();
+
+      const vendorResponse: VendorResponseDTO[] = vendors.map((vendor) => {
+        return new VendorResponseDTO(vendor);
+      });
+
+      return vendorResponse;
+    } catch (error) {
+      logger.error("Error in AdminController.getAllVendor:", error);
+      throw new Error("Failed to get vendors");
+    }
+  };
+
+  getVendorById = async (
+    payload: ControllerPayload
+  ): Promise<VendorResponseDTO> => {
     const vendorId: string = payload.req.params.id;
 
     try {
@@ -67,24 +64,10 @@ export default class AdminController implements IAdminController {
 
       const vendorResponse: VendorResponseDTO = new VendorResponseDTO(vendor);
 
-      return payload.res.status(200).json({
-        success: true,
-        message: "Vendor retrieved successfully!",
-        data: vendorResponse,
-      });
+      return vendorResponse;
     } catch (error) {
       logger.error("Error in AdminController.getVendorByID:", error);
-
-      if (error instanceof BusinessLogicError) {
-        return payload.res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      }
-      return payload.res.status(500).json({
-        success: false,
-        message: "Internal server error",
-      });
+      throw new Error("Failed to get vendor by ID");
     }
   };
 }

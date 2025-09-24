@@ -41,6 +41,21 @@ export default class AdminRepo implements IAdminRepo {
     }
   };
 
+  getAllVendor = async (): Promise<VendorDoc[]> => {
+    try {
+      const vendors: VendorDoc[] | null = await this.db.find();
+
+      if (!vendors) {
+        throw new BusinessLogicError("Vendors not found", 404);
+      }
+
+      return vendors;
+    } catch (error) {
+      logger.error("Error in AdminRepo.getAllVendor:", error);
+      throw error;
+    }
+  };
+
   getVendorByID = async (vendorId: string): Promise<VendorDoc> => {
     try {
       if (!vendorId) {

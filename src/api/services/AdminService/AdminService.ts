@@ -51,6 +51,21 @@ export default class AdminService implements IAdminService {
     }
   };
 
+  getAllVendor = async (): Promise<VendorDoc[]> => {
+    try {
+      const vendors: VendorDoc[] = await this.adminRepo.getAllVendor();
+
+      if (!vendors) {
+        throw new BusinessLogicError("Vendors not found", 404);
+      }
+
+      return vendors;
+    } catch (error) {
+      logger.error("Error in AdminService.getAllVendor:", error);
+      throw error;
+    }
+  };
+
   getVendorByID = async (vendorId: string): Promise<VendorDoc> => {
     try {
       if (!vendorId?.trim()) {

@@ -12,6 +12,7 @@ type RouteMap = {
 const routes: RouteMap = {
   [HttpMethod.GET]: {
     "vendor-by-id": adminController.getVendorById,
+    "all-vendor": adminController.getAllVendor,
   },
   [HttpMethod.POST]: {
     "create-vendor": adminController.createVendor,
