@@ -9,11 +9,11 @@ export default (): IRouter => {
   const mwCtxForPost = {};
   const mwCtxForGet = {};
 
-  const postMWs = [auth].map((fn) => fn(mwCtxForPost));
-  const getMWs = [auth].map((fn) => fn(mwCtxForGet));
+  const postMWs = [auth].map((fn) => []);
+  const getMWs = [auth].map((fn) => []);
 
   router.get(
-    "/:apiversion/:service",
+    "/:apiversion/:service/:id",
     ...getMWs,
     async (req: Request, res: Response) => {
       await callService(HttpMethod.GET, req, res);

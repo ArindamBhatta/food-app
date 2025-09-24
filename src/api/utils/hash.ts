@@ -12,12 +12,12 @@ if (!API_SECRET) {
   process.exit(1);
 }
 
-// Generate a salt
+// step 1: - Generate a salt
 export const generateSalt = async (): Promise<string> => {
   return await bcrypt.genSalt();
 };
 
-// Hash a password with the given salt
+// step 2: - hashing the password
 export const hashPassword = async (
   password: string,
   salt: string
@@ -25,7 +25,7 @@ export const hashPassword = async (
   return await bcrypt.hash(password, salt);
 };
 
-// Verify a password against a stored hash
+// step 3: - cracking password boolean
 export const verifyPassword = async (
   enteredPassword: string,
   savedPassword: string,
@@ -36,6 +36,12 @@ export const verifyPassword = async (
 };
 
 // Generate JWT token
+/* 
+A server-wide secret key (e.g., process.env.API_SECRET) used to sign and verify JWT tokens.
+It has nothing to do with hashing passwords or salts.
+It must be the same on token creation and token verification, but should never leave the server.
+
+*/
 export const generateToken = (payload: AuthPayload): string => {
   if (!API_SECRET) {
     throw new Error("API_SECRET is not defined");
