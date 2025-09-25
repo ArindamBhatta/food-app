@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthPayload } from "../dto/Auth.dto";
-import { validateToken } from "../utils/hash";
+import { validateAccessToken } from "../utils/auth.utility";
 
 declare global {
   namespace Express {
@@ -12,44 +12,12 @@ declare global {
 
 /**
  * Authentication middleware that validates JWT tokens and checks user roles
- * @param requiredRoles - Array of roles that are allowed to access the route
  */
+
 export const auth = (requiredRoles: string[] = []) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // DEVELOPMENT ONLY: Skip auth for specific routes
-      const originalUrl = req.originalUrl || "";
-      if (
-        originalUrl.includes("create-vendor") &&
-        process.env.NODE_ENV !== "production"
-      ) {
-        console.warn(
-          "WARNING: Authentication bypassed for create-vendor - THIS SHOULD NOT BE USED IN PRODUCTION"
-        );
-        return next();
-      }
-
-      // Get token from header
-      const authHeader = req.headers.authorization;
-
-      if (!authHeader) {
-        return res.status(401).json({
-          success: false,
-          message: "No authorization header provided",
-        });
-      }
-
-      const [bearer, token] = authHeader.split(" ");
-
-      if (bearer !== "Bearer" || !token) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid authorization format. Use 'Bearer <token>'",
-        });
-      }
-
-      // Validate token and get user payload
-      const isValid = await validateToken(req);
+      const isValid = await validateAccessToken(req);
 
       if (!isValid || !req.user) {
         return res.status(401).json({
@@ -65,7 +33,6 @@ export const auth = (requiredRoles: string[] = []) => {
           message: `Access denied. Required role: ${requiredRoles.join(", ")}`,
         });
       }
-
       // If we get here, authentication was successful
       next();
     } catch (error) {

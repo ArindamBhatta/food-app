@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import AdminService from "../../services/AdminService/AdminService";
 import IAdminController from "./AdminController.interface";
-import { CreateVendorDTO, VendorResponseDTO } from "../../dto/Vendor.dto";
+import {
+  CreateVendorDTO,
+  VendorResponseDTO,
+} from "../../dto/interface/Vendor.dto";
 import { ControllerPayload } from "../../../constants";
-import { ValidationError, BusinessLogicError } from "../../utils/Error";
 import { VendorDoc } from "../../entities";
 import logger from "../../../infrastructure/logger/winston";
 
@@ -30,7 +32,7 @@ export default class AdminController implements IAdminController {
 
       // step 3: - convert to response dto to exclude sensitive data
       const vendorResponse: VendorResponseDTO = new VendorResponseDTO(vendor);
-      return vendorResponse;
+      return new VendorResponseDTO(vendorResponse);
     } catch (error) {
       logger.error("Error in AdminController.createVendor:", error);
       throw new Error("Failed to create vendor");
@@ -43,9 +45,9 @@ export default class AdminController implements IAdminController {
     try {
       const vendors: VendorDoc[] = await this.adminService.getAllVendor();
 
-      const vendorResponse: VendorResponseDTO[] = vendors.map((vendor) => {
-        return new VendorResponseDTO(vendor);
-      });
+      const vendorResponse: VendorResponseDTO[] = vendors.map(
+        (vendor) => new VendorResponseDTO(vendor)
+      );
 
       return vendorResponse;
     } catch (error) {
@@ -64,7 +66,7 @@ export default class AdminController implements IAdminController {
 
       const vendorResponse: VendorResponseDTO = new VendorResponseDTO(vendor);
 
-      return vendorResponse;
+      return new VendorResponseDTO(vendorResponse);
     } catch (error) {
       logger.error("Error in AdminController.getVendorByID:", error);
       throw new Error("Failed to get vendor by ID");

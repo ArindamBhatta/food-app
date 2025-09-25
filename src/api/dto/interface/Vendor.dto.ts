@@ -1,5 +1,5 @@
-import { Document } from 'mongoose';
-import { ValidationError } from "../utils/Error";
+import { Document } from "mongoose";
+import { ValidationError } from "../../utils/Error";
 
 // Payload for JWT token
 export interface VendorPayload {
@@ -8,7 +8,7 @@ export interface VendorPayload {
   name: string;
   ownerName: string;
   foodType: string[];
-  role: 'vendor';
+  role: "vendor";
   serviceAvailable: boolean;
 }
 
@@ -78,15 +78,23 @@ export class CreateVendorDTO {
     } else {
       const validFoodTypes = ["veg", "non-veg"];
       const invalidTypes = this.foodType.filter(
-        (type) => typeof type === 'string' && !validFoodTypes.includes(type.toLowerCase())
+        (type) =>
+          typeof type === "string" &&
+          !validFoodTypes.includes(type.toLowerCase())
       );
-      
+
       if (invalidTypes.length > 0) {
-        errors.push(`Invalid food type(s): ${invalidTypes.join(", ")}. Must be one of: ${validFoodTypes.join(", ")}`);
+        errors.push(
+          `Invalid food type(s): ${invalidTypes.join(
+            ", "
+          )}. Must be one of: ${validFoodTypes.join(", ")}`
+        );
       }
-      
+
       // Ensure all food types are unique and in lowercase
-      this.foodType = [...new Set(this.foodType.map(type => type.toLowerCase()))];
+      this.foodType = [
+        ...new Set(this.foodType.map((type) => type.toLowerCase())),
+      ];
     }
 
     // Validate email
@@ -149,6 +157,51 @@ export class CreateVendorDTO {
   private isValidPhone(phone: string): boolean {
     const phoneRegex = /^\d{10}$/;
     return phoneRegex.test(phone.replace(/\D/g, ""));
+  }
+}
+
+export class LoginVendorDTO {
+  email: string;
+  password: string;
+
+  constructor(data: any) {
+    this.email = data?.email;
+    this.password = data?.password;
+    this.validate();
+  }
+
+  private validate(): void {
+    const errors: string[] = [];
+
+    if (!this.email || typeof this.email !== "string") {
+      errors.push("Email is required");
+    } else if (!this.isValidEmail(this.email)) {
+      errors.push("Please provide a valid email address");
+    }
+
+    if (!this.password || typeof this.password !== "string") {
+      errors.push("Password is required");
+    } else if (this.password.length < 6) {
+      errors.push("Password must be at least 6 characters long");
+    } else if (this.password.length > 128) {
+      errors.push("Password must not exceed 128 characters");
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(this.password)) {
+      errors.push(
+        "Password must contain at least one lowercase letter, one uppercase letter, and one number"
+      );
+    }
+
+    if (errors.length > 0) {
+      throw new ValidationError("Validation failed", errors);
+    }
+
+    // Clean up the data
+    this.email = this.email.toLowerCase().trim();
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
   }
 }
 
@@ -243,14 +296,22 @@ export class UpdateVendorDTO {
       } else {
         const validFoodTypes = ["veg", "non-veg"];
         const invalidTypes = this.foodType.filter(
-          (type) => typeof type === 'string' && !validFoodTypes.includes(type.toLowerCase())
+          (type) =>
+            typeof type === "string" &&
+            !validFoodTypes.includes(type.toLowerCase())
         );
-        
+
         if (invalidTypes.length > 0) {
-          errors.push(`Invalid food type(s): ${invalidTypes.join(", ")}. Must be one of: ${validFoodTypes.join(", ")}`);
+          errors.push(
+            `Invalid food type(s): ${invalidTypes.join(
+              ", "
+            )}. Must be one of: ${validFoodTypes.join(", ")}`
+          );
         } else {
           // Ensure all food types are unique and in lowercase
-          this.foodType = [...new Set(this.foodType.map(type => type.toLowerCase()))];
+          this.foodType = [
+            ...new Set(this.foodType.map((type) => type.toLowerCase())),
+          ];
         }
       }
     }

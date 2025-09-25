@@ -1,5 +1,5 @@
+import { CreateVendorDTO } from "../../dto/interface/Vendor.dto";
 import { VendorDoc } from "../../entities";
-import { CreateVendorDTO } from "../../dto/Vendor.dto";
 
 export default interface IAdminRepo {
   createVendor: (payload: ICreateVendorRepoParams) => Promise<VendorDoc>;

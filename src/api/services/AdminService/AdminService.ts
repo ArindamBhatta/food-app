@@ -1,11 +1,12 @@
 import AdminRepo from "../../repos/AdminRepo/AdminRepo";
 import { VendorDoc } from "../../entities";
 import IAdminService from "./AdminService.interface";
-import { CreateVendorDTO } from "../../dto/Vendor.dto";
-import { generateSalt, hashPassword } from "../../utils/hash";
+
+import { generateSalt, hashPassword } from "../../utils/auth.utility";
 import { ICreateVendorRepoParams } from "../../repos/AdminRepo/AdminRepo.interface";
 import { BusinessLogicError } from "../../utils/Error";
 import logger from "../../../infrastructure/logger/winston";
+import { CreateVendorDTO } from "../../dto/interface/Vendor.dto";
 
 export default class AdminService implements IAdminService {
   private adminRepo: AdminRepo;

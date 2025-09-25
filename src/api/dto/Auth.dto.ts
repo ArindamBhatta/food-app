@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
-import { VendorPayload } from "./Vendor.dto";
-import { CustomerPayload } from "./Customer.dto";
+import { VendorPayload } from "./interface/Vendor.dto";
+import { CustomerPayload } from "./interface/Customer.dto";
 
 export type AuthPayload = VendorPayload | CustomerPayload;
 
@@ -35,15 +35,19 @@ export interface AuthResponse<T = any> {
   errors?: string[];
 }
 
-// Type guards for AuthPayload
+//Correct type guards based on actual payload properties
 export function isVendorPayload(
   payload: AuthPayload
 ): payload is VendorPayload {
-  return "foodType" in payload && "serviceAvailable" in payload;
+  return (
+    payload.role === "vendor" &&
+    "foodType" in payload &&
+    "serviceAvailable" in payload
+  );
 }
 
 export function isCustomerPayload(
   payload: AuthPayload
 ): payload is CustomerPayload {
-  return "addresses" in payload && "orders" in payload;
+  return payload.role === "customer" && "verified" in payload;
 }

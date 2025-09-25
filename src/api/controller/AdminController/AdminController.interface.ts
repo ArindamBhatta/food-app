@@ -1,4 +1,3 @@
-import { Response } from "express";
 import { ControllerPayload } from "../../../constants";
 import { VendorResponseDTO } from "../../dto/Vendor.dto";
 

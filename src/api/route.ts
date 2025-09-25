@@ -1,5 +1,5 @@
 import { HttpMethod } from "../constants";
-import { adminController } from "./controller";
+import { adminController, vendorController } from "./controller";
 
 interface RouteHandlers {
   [key: string]: (payload: any) => Promise<any>;
@@ -16,6 +16,7 @@ const routes: RouteMap = {
   },
   [HttpMethod.POST]: {
     "create-vendor": adminController.createVendor,
+    "vendor-login": vendorController.vendorLogin,
   },
   [HttpMethod.PATCH]: {},
   [HttpMethod.PUT]: {},

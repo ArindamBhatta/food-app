@@ -1,6 +1,6 @@
 import express, { Request, Response, IRouter } from "express";
 import { HttpMethod, ApiVersion } from "../constants";
-import { auth } from "./middleware/auth";
+import { auth } from "./middleware/auth.middleware";
 import routes from "./route";
 import { BusinessLogicError } from "./utils/Error";
 
@@ -52,13 +52,22 @@ const callService = async (method: HttpMethod, req: Request, res: Response) => {
   }
 
   try {
-    const data = await serviceDef({ req }); // controller returns data
+    const data = await serviceDef({ req, res }); // controller returns data
     res.status(200).json({ success: true, data });
   } catch (error) {
     console.error("Error calling service:", error);
     if (error instanceof BusinessLogicError) {
       return res.status(400).json({ success: false, message: error.message });
     }
+
+    // Handle authentication errors
+    if (error instanceof Error && error.message === "Invalid credentials") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

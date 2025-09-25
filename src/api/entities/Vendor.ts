@@ -39,6 +39,8 @@ const VendorSchema = new Schema(
         ref: "food",
       },
     ],
+    refreshToken: { type: String, default: null },
+    refreshTokenUpdatedAt: { type: Date, default: null },
   },
   {
     //transform to json for retrieve data
