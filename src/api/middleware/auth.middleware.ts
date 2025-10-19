@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { AuthPayload } from "../dto/Auth.dto";
 import { validateAccessToken } from "../utils/auth.utility";
 
@@ -14,34 +14,37 @@ declare global {
  * Authentication middleware that validates JWT tokens and checks user roles
  */
 
-export const auth = (requiredRoles: string[] = []) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+export const auth = (requiredRoles: string[] = []): RequestHandler => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const isValid = await validateAccessToken(req);
 
       if (!isValid || !req.user) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: "Invalid or expired token",
         });
+        return;
       }
 
       // Check if user has required role if any roles are specified
       if (requiredRoles.length > 0 && !requiredRoles.includes(req.user.role)) {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: `Access denied. Required role: ${requiredRoles.join(", ")}`,
         });
+        return;
       }
       // If we get here, authentication was successful
       next();
     } catch (error) {
       console.error("Auth middleware error:", error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         message: "Authentication failed",
         error: error instanceof Error ? error.message : "Unknown error",
       });
+      return;
     }
   };
 };

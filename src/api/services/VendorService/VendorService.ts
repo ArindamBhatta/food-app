@@ -87,4 +87,22 @@ export default class VendorService implements IVendorService {
       throw error;
     }
   };
+
+  vendorProfile = async (vendorId: string): Promise<VendorDoc | null> => {
+    try {
+      // Step 1: Find vendor via ID
+      const vendor: VendorDoc | null = await this.vendorRepo.vendorProfile(
+        vendorId
+      );
+
+      if (!vendor) {
+        throw new Error("Vendor not found");
+      }
+
+      return vendor;
+    } catch (error) {
+      console.error("Error in vendorProfile:", error);
+      throw error;
+    }
+  };
 }

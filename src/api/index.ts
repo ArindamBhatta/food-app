@@ -1,4 +1,10 @@
-import express, { Request, Response, IRouter } from "express";
+import express, {
+  Request,
+  Response,
+  IRouter,
+  NextFunction,
+  RequestHandler,
+} from "express";
 import { HttpMethod, ApiVersion } from "../constants";
 import { auth } from "./middleware/auth.middleware";
 import routes from "./route";
@@ -7,8 +13,10 @@ import { BusinessLogicError } from "./utils/Error";
 const router = express.Router();
 
 export default (): IRouter => {
-  const postMWs = [auth].map((fn) => []);
-  const getMWs = [auth].map((fn) => []);
+  // Apply authentication to GET routes (e.g., protected resources like vendor profile)
+  const getMWs: RequestHandler[] = [auth()];
+  // Leave POST routes unauthenticated here (e.g., login). Apply per-route auth if needed.
+  const postMWs: RequestHandler[] = [];
 
   // Route for GET requests with ID parameter
   router.get(

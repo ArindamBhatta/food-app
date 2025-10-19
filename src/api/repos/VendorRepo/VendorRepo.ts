@@ -43,4 +43,19 @@ export default class VendorRepo implements IVendorRepo {
       throw new Error("Database error occurred");
     }
   };
+
+  vendorProfile = async (vendorId: string): Promise<VendorDoc | null> => {
+    try {
+      const vendor: VendorDoc | null = await this.db.findById(vendorId);
+
+      if (!vendor) {
+        throw new Error("Vendor not found");
+      }
+
+      return vendor;
+    } catch (error) {
+      console.error("Error in VendorRepo.vendorProfile:", error);
+      throw new Error("Database error occurred");
+    }
+  };
 }

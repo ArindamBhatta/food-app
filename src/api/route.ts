@@ -13,12 +13,19 @@ const routes: RouteMap = {
   [HttpMethod.GET]: {
     "vendor-by-id": adminController.getVendorById,
     "all-vendor": adminController.getAllVendor,
+    "get-vendor-profile": vendorController.vendorProfile,
+    //get-all-food
   },
   [HttpMethod.POST]: {
     "create-vendor": adminController.createVendor,
     "vendor-login": vendorController.vendorLogin,
+    //add-food
   },
-  [HttpMethod.PATCH]: {},
+  [HttpMethod.PATCH]: {
+    // "update-vendor-profile": vendorController.updateVendorProfile,
+    // "update-vendor-cover-image"
+    // "update-vendor-service"
+  },
   [HttpMethod.PUT]: {},
   [HttpMethod.DELETE]: {},
 };

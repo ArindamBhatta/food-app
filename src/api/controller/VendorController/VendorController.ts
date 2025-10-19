@@ -1,8 +1,10 @@
 import { ControllerPayload } from "../../../constants";
+import { AuthPayload } from "../../dto/Auth.dto";
 import {
   LoginVendorDTO,
   VendorResponseDTO,
 } from "../../dto/interface/Vendor.dto";
+import { VendorDoc } from "../../entities";
 import VendorService from "../../services/VendorService/VendorService";
 import { LoginResponse } from "../../services/VendorService/VendorService.interface";
 import IVendorController from "./VendorController.interface";
@@ -56,9 +58,34 @@ export default class VendorController implements IVendorController {
     }
   };
 
-  //not implemented right now
-  vendorProfile = (payload: any) => {
-    throw new Error("Method not implemented");
+  //
+  vendorProfile = async (payload: ControllerPayload) => {
+    try {
+      //Step 1: frontend send the token verify the token
+      const user: AuthPayload | undefined = payload.req.user;
+      console.log("user", user);
+
+      if (user) {
+        const existingVendor: VendorDoc | null =
+          await this.vendorService.vendorProfile(user._id?.toString());
+        if (existingVendor) {
+          return {
+            status: 200,
+            vendor: existingVendor,
+          };
+        }
+      } else {
+        return {
+          status: 401,
+          error: {
+            message: `User not found ${user}`,
+          },
+        };
+      }
+    } catch (error) {
+      console.error("Error in vendorProfile:", error);
+      throw error;
+    }
   };
 
   updateProfile = (payload: any) => {
