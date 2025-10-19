@@ -1,8 +1,12 @@
 import { HttpMethod } from "../constants";
 import { adminController, vendorController } from "./controller";
-
+import { auth } from "./middleware/auth.middleware";
+import { RequestHandler } from "express";
+type ControllerFn = (payload: any) => Promise<any>;
+// A route can be a single controller or an array where middlewares precede the controller
+export type RouteDefinition = ControllerFn | (RequestHandler | ControllerFn)[];
 interface RouteHandlers {
-  [key: string]: (payload: any) => Promise<any>;
+  [key: string]: RouteDefinition;
 }
 
 type RouteMap = {
@@ -17,7 +21,7 @@ const routes: RouteMap = {
     //get-all-food
   },
   [HttpMethod.POST]: {
-    "create-vendor": adminController.createVendor,
+    "create-vendor": [auth(["admin"]), adminController.createVendor], // 🛡 admin-only
     "vendor-login": vendorController.vendorLogin,
     //add-food
   },
