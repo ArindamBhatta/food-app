@@ -17,7 +17,7 @@ const routes: RouteMap = {
   [HttpMethod.GET]: {
     "vendor-by-id": adminController.getVendorById,
     "all-vendor": adminController.getAllVendor,
-    "get-vendor-profile": vendorController.vendorProfile,
+    "get-vendor-profile": [auth(["vendor"]), vendorController.vendorProfile],
     //get-all-food
   },
   [HttpMethod.POST]: {
@@ -26,7 +26,7 @@ const routes: RouteMap = {
     //add-food
   },
   [HttpMethod.PATCH]: {
-    // "update-vendor-profile": vendorController.updateVendorProfile,
+    "update-vendor-profile": [auth(["vendor"]), vendorController.updateProfile],
     // "update-vendor-cover-image"
     // "update-vendor-service"
   },

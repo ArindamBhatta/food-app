@@ -52,6 +52,8 @@ const VendorSchema = new Schema(
         delete ret.__v;
         delete ret.createdAt;
         delete ret.updatedAt;
+        delete ret.refreshToken;
+        delete ret.refreshTokenUpdatedAt;
       },
     },
     timestamps: true,

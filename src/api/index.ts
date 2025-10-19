@@ -36,6 +36,15 @@ export default (): IRouter => {
     }
   );
 
+  // Route for PATCH requests
+  router.patch(
+    "/:apiversion/:service/:id?",
+    ...postMWs,
+    async (req: Request, res: Response) => {
+      await callService(HttpMethod.PATCH, req, res);
+    }
+  );
+
   return router;
 };
 

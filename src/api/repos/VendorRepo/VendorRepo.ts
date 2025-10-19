@@ -1,3 +1,4 @@
+import { EditVendorProfileDTO } from "../../dto/interface/Vendor.dto";
 import { Vendor, VendorDoc } from "../../entities";
 import IVendorRepo from "./VendorRepo.interface";
 
@@ -8,15 +9,34 @@ export default class VendorRepo implements IVendorRepo {
     this.db = db;
   }
 
-  loginVendor = async (email: string): Promise<VendorDoc | null> => {
+  findVendor = async (
+    vendorId?: string,
+    email?: string
+  ): Promise<VendorDoc | null> => {
     try {
-      const vendor: VendorDoc | null = await this.db.findOne({
-        email: email.toLowerCase().trim(),
-      });
+      if (email) {
+        const vendor: VendorDoc | null = await this.db.findOne({
+          email: email.toLowerCase().trim(),
+        });
 
-      return vendor;
+        if (!vendor) {
+          throw new Error("Vendor not found");
+        }
+
+        return vendor;
+      } else if (vendorId) {
+        const vendor: VendorDoc | null = await this.db.findById(vendorId);
+
+        if (!vendor) {
+          throw new Error("Vendor not found");
+        }
+
+        return vendor;
+      } else {
+        throw new Error("Vendor not found");
+      }
     } catch (error) {
-      console.error("Error in VendorRepo.loginVendor:", error);
+      console.error("Error in VendorRepo.findVendor:", error);
       throw new Error("Database error occurred");
     }
   };
@@ -44,17 +64,23 @@ export default class VendorRepo implements IVendorRepo {
     }
   };
 
-  vendorProfile = async (vendorId: string): Promise<VendorDoc | null> => {
+  updateProfile = async (
+    vendorId: string,
+    UpdateVendorProfile: EditVendorProfileDTO
+  ): Promise<VendorDoc | null> => {
     try {
-      const vendor: VendorDoc | null = await this.db.findById(vendorId);
+      const updateProfile = await this.db.findByIdAndUpdate(
+        vendorId,
+        { $set: { ...UpdateVendorProfile } },
+        { new: true, runValidators: true }
+      );
 
-      if (!vendor) {
-        throw new Error("Vendor not found");
+      if (!updateProfile) {
+        throw new Error("Vendor not found for profile update");
       }
-
-      return vendor;
+      return updateProfile;
     } catch (error) {
-      console.error("Error in VendorRepo.vendorProfile:", error);
+      console.error("Error in VendorRepo.updateProfile:", error);
       throw new Error("Database error occurred");
     }
   };

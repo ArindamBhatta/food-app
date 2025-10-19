@@ -237,24 +237,17 @@ export class VendorResponseDTO {
 }
 
 // For updating vendor data
-export class UpdateVendorDTO {
+export class EditVendorProfileDTO {
   name?: string;
   address?: string;
-  pincode?: string;
   foodType?: string[];
-  ownerName?: string;
   phone?: string;
-  serviceAvailable?: boolean;
 
   constructor(data: any) {
     if (data.name !== undefined) this.name = data.name;
     if (data.address !== undefined) this.address = data.address;
-    if (data.pincode !== undefined) this.pincode = data.pincode;
     if (data.foodType !== undefined) this.foodType = data.foodType;
-    if (data.ownerName !== undefined) this.ownerName = data.ownerName;
     if (data.phone !== undefined) this.phone = data.phone;
-    if (data.serviceAvailable !== undefined)
-      this.serviceAvailable = data.serviceAvailable;
 
     this.validate();
   }
@@ -284,12 +277,6 @@ export class UpdateVendorDTO {
       }
     }
 
-    if (this.pincode !== undefined) {
-      if (typeof this.pincode !== "string" || !/^\d{6}$/.test(this.pincode)) {
-        errors.push("Pincode must be exactly 6 digits");
-      }
-    }
-
     if (this.foodType !== undefined) {
       if (!Array.isArray(this.foodType) || this.foodType.length === 0) {
         errors.push("At least one food type is required");
@@ -316,20 +303,6 @@ export class UpdateVendorDTO {
       }
     }
 
-    if (this.ownerName !== undefined) {
-      if (
-        typeof this.ownerName !== "string" ||
-        this.ownerName.trim().length === 0
-      ) {
-        errors.push("Owner name must be a non-empty string");
-      } else if (
-        this.ownerName.trim().length < 2 ||
-        this.ownerName.trim().length > 100
-      ) {
-        errors.push("Owner name must be between 2 and 100 characters");
-      }
-    }
-
     if (this.phone !== undefined) {
       if (
         typeof this.phone !== "string" ||
@@ -339,13 +312,6 @@ export class UpdateVendorDTO {
       }
     }
 
-    if (
-      this.serviceAvailable !== undefined &&
-      typeof this.serviceAvailable !== "boolean"
-    ) {
-      errors.push("Service available must be a boolean value");
-    }
-
     if (errors.length > 0) {
       throw new ValidationError("Validation failed", errors);
     }
@@ -353,7 +319,7 @@ export class UpdateVendorDTO {
     // Clean up the data
     if (this.name) this.name = this.name.trim();
     if (this.address) this.address = this.address.trim();
-    if (this.ownerName) this.ownerName = this.ownerName.trim();
-    // foodType is already processed in the validation step
+    if (this.foodType) this.foodType = this.foodType.map((type) => type.trim());
+    if (this.phone) this.phone = this.phone.replace(/\D/g, "");
   }
 }

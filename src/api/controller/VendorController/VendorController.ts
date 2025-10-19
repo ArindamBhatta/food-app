@@ -1,6 +1,7 @@
 import { ControllerPayload } from "../../../constants";
 import { AuthPayload } from "../../dto/Auth.dto";
 import {
+  EditVendorProfileDTO,
   LoginVendorDTO,
   VendorResponseDTO,
 } from "../../dto/interface/Vendor.dto";
@@ -63,8 +64,6 @@ export default class VendorController implements IVendorController {
     try {
       //Step 1: frontend send the token verify the token
       const user: AuthPayload | undefined = payload.req.user;
-      console.log("user", user);
-
       if (user) {
         const existingVendor: VendorDoc | null =
           await this.vendorService.vendorProfile(user._id?.toString());
@@ -72,6 +71,7 @@ export default class VendorController implements IVendorController {
           return {
             status: 200,
             vendor: existingVendor,
+            message: "Vendor profile fetched successfully",
           };
         }
       } else {
@@ -88,8 +88,50 @@ export default class VendorController implements IVendorController {
     }
   };
 
-  updateProfile = (payload: any) => {
-    throw new Error("Method not implemented");
+  updateProfile = async (payload: ControllerPayload) => {
+    try {
+      const EditVendorProfile: EditVendorProfileDTO = new EditVendorProfileDTO(
+        payload.req.body
+      );
+      const user: AuthPayload | undefined = payload.req.user;
+      if (!user) {
+        return {
+          status: 401,
+          error: {
+            message: "User not authenticated"
+          }
+        };
+      }
+
+      const updatedVendor = await this.vendorService.updateProfile(
+        EditVendorProfile,
+        user._id?.toString()
+      );
+
+      if (!updatedVendor) {
+        return {
+          status: 404,
+          error: {
+            message: "Vendor not found"
+          }
+        };
+      }
+
+      return {
+        status: 200,
+        vendor: new VendorResponseDTO(updatedVendor),
+        message: "Vendor profile updated successfully"
+      };
+    } catch (error: any) {
+      console.error("Error in updateProfile:", error);
+      return {
+        status: 500,
+        error: {
+          message: "Internal server error",
+          details: error.message
+        }
+      };
+    }
   };
 
   updateShopImage = (payload: any) => {

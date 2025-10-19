@@ -6,7 +6,11 @@ import {
   generateRefreshToken,
   generateAccessToken,
 } from "../../utils/auth.utility";
-import { LoginVendorDTO, VendorPayload } from "../../dto/interface/Vendor.dto";
+import {
+  EditVendorProfileDTO,
+  LoginVendorDTO,
+  VendorPayload,
+} from "../../dto/interface/Vendor.dto";
 
 export default class VendorService implements IVendorService {
   private vendorRepo: VendorRepo;
@@ -33,7 +37,7 @@ export default class VendorService implements IVendorService {
   vendorLogin = async (loginVendor: LoginVendorDTO): Promise<LoginResponse> => {
     try {
       // Step 1: Find vendor via email
-      const vendor: VendorDoc | null = await this.vendorRepo.loginVendor(
+      const vendor: VendorDoc | null = await this.vendorRepo.findVendor(
         loginVendor.email
       );
 
@@ -41,8 +45,8 @@ export default class VendorService implements IVendorService {
         throw new Error("Invalid credentials");
       }
 
-      // Step 2: Verify password
-      const isPasswordValid = await this.validatePassword(
+      // Step 2: Verify password using bcrypt
+      const isPasswordValid: boolean = await this.validatePassword(
         loginVendor.password,
         vendor.password,
         vendor.salt
@@ -91,7 +95,7 @@ export default class VendorService implements IVendorService {
   vendorProfile = async (vendorId: string): Promise<VendorDoc | null> => {
     try {
       // Step 1: Find vendor via ID
-      const vendor: VendorDoc | null = await this.vendorRepo.vendorProfile(
+      const vendor: VendorDoc | null = await this.vendorRepo.findVendor(
         vendorId
       );
 
@@ -102,6 +106,23 @@ export default class VendorService implements IVendorService {
       return vendor;
     } catch (error) {
       console.error("Error in vendorProfile:", error);
+      throw error;
+    }
+  };
+
+  updateProfile = async (
+    UpdateVendorProfile: EditVendorProfileDTO,
+    vendorId: string
+  ): Promise<VendorDoc | null> => {
+    try {
+      const updatedVendor: VendorDoc | null =
+        await this.vendorRepo.updateProfile(vendorId, UpdateVendorProfile);
+      if (!updatedVendor) {
+        throw new Error("failed to update vendor profile");
+      }
+      return updatedVendor;
+    } catch (error) {
+      console.error("Error in updateProfile:", error);
       throw error;
     }
   };
