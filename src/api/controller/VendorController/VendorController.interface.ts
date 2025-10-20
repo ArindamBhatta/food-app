@@ -4,7 +4,7 @@ import { VendorDoc } from "../../entities";
 export default interface IVendorController {
   vendorLogin: (payload: ControllerPayload) => {};
   vendorProfile: (payload: any) => any;
-  updateProfile: (payload: any) => any;
+  updateOwnerProfile: (payload: any) => any;
   updateShopImage: (payload: any) => any;
   vendorAddFoods: (payload: any) => any;
   fetchAllFood: (payload: any) => any;

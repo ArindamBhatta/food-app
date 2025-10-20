@@ -9,10 +9,13 @@ export default class VendorRepo implements IVendorRepo {
     this.db = db;
   }
 
-  findVendor = async (
-    vendorId?: string,
-    email?: string
-  ): Promise<VendorDoc | null> => {
+  findVendor = async ({
+    vendorId,
+    email,
+  }: {
+    vendorId?: string;
+    email?: string;
+  }): Promise<VendorDoc | null> => {
     try {
       if (email) {
         const vendor: VendorDoc | null = await this.db.findOne({
@@ -64,7 +67,7 @@ export default class VendorRepo implements IVendorRepo {
     }
   };
 
-  updateProfile = async (
+  updateOwnerProfile = async (
     vendorId: string,
     UpdateVendorProfile: EditVendorProfileDTO
   ): Promise<VendorDoc | null> => {
@@ -79,6 +82,27 @@ export default class VendorRepo implements IVendorRepo {
         throw new Error("Vendor not found for profile update");
       }
       return updateProfile;
+    } catch (error) {
+      console.error("Error in VendorRepo.updateProfile:", error);
+      throw new Error("Database error occurred");
+    }
+  };
+
+  updateShopImage = async (
+    vendorId: string,
+    file: Express.Multer.File
+  ): Promise<VendorDoc | null> => {
+    try {
+      const updatedVendor: VendorDoc | null = await this.db.findByIdAndUpdate(
+        vendorId,
+        { $set: { shopImage: file.filename } },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedVendor) {
+        throw new Error("Vendor not found for profile update");
+      }
+      return updatedVendor;
     } catch (error) {
       console.error("Error in VendorRepo.updateProfile:", error);
       throw new Error("Database error occurred");

@@ -18,6 +18,8 @@ export default (): IRouter => {
   // Leave POST routes unauthenticated here (e.g., login). Apply per-route auth if needed.
   const postMWs: RequestHandler[] = [];
 
+  const patchMWs: RequestHandler[] = [];
+
   // Route for GET requests with ID parameter
   router.get(
     "/:apiversion/:service/:id?",
@@ -39,7 +41,7 @@ export default (): IRouter => {
   // Route for PATCH requests
   router.patch(
     "/:apiversion/:service/:id?",
-    ...postMWs,
+    ...patchMWs,
     async (req: Request, res: Response) => {
       await callService(HttpMethod.PATCH, req, res);
     }
@@ -48,30 +50,11 @@ export default (): IRouter => {
   return router;
 };
 
-// Helper to run an array of Express middlewares in order
-const runMiddlewares = (
-  mws: RequestHandler[],
+const callService = async (
+  method: HttpMethod,
   req: Request,
   res: Response
-): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    let idx = 0;
-    const next: NextFunction = (err?: any) => {
-      if (err) return reject(err);
-      if (res.headersSent) return resolve();
-      const mw = mws[idx++];
-      if (!mw) return resolve();
-      try {
-        mw(req, res, next);
-      } catch (e) {
-        reject(e);
-      }
-    };
-    next();
-  });
-};
-
-const callService = async (method: HttpMethod, req: Request, res: Response) => {
+) => {
   const apiVersion: string = req.params.apiversion || ApiVersion.V1;
   const serviceName: string = req.params.service;
   console.log("callService", { method, serviceName });
@@ -84,48 +67,63 @@ const callService = async (method: HttpMethod, req: Request, res: Response) => {
       serviceDef = routes[method]?.[serviceName];
       break;
     default:
-      return res.status(400).json({ message: "Unsupported API version" });
+      return res.status(400).json({ success: false, message: "Unsupported API version" });
   }
 
   if (!serviceDef) {
-    return res.status(404).json({ message: "Service not found" });
+    return res.status(404).json({ success: false, message: "Service not found" });
   }
 
   try {
-    // If serviceDef is an array, treat elements before last as middlewares, last as controller
-    let data: any;
+    // Build a payload that our controllers expect
+    const payload = { req, res } as any;
+
+    let result: any;
+
     if (Array.isArray(serviceDef)) {
-      const mws = serviceDef.slice(
-        0,
-        serviceDef.length - 1
-      ) as RequestHandler[];
-      const controller = serviceDef[serviceDef.length - 1] as (
-        payload: any
-      ) => Promise<any>;
-      // Run middlewares sequentially
-      await runMiddlewares(mws, req, res);
-      if (!res.headersSent) {
-        data = await controller({ req, res });
-        res.status(200).json({ success: true, data });
+      // If an array, treat everything except the last item as middleware
+      const middlewares = serviceDef.slice(0, -1) as RequestHandler[];
+      const controller = serviceDef[serviceDef.length - 1] as any;
+
+      // Execute middlewares sequentially (they may mutate req/res)
+      for (const mw of middlewares) {
+        await new Promise<void>((resolve, reject) => {
+          (mw as RequestHandler)(req, res, (err?: any) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+        // If middleware already sent a response, stop further processing
+        if (res.headersSent) return;
       }
+
+      // Execute controller
+      result = await controller(payload);
     } else {
-      data = await serviceDef({ req, res });
-      res.status(200).json({ success: true, data });
+      // Single controller function
+      const controller = serviceDef as any;
+      result = await controller(payload);
     }
-  } catch (error) {
-    console.error("Error calling service:", error);
+
+    // If the controller already handled the response
+    if (res.headersSent) return;
+
+    if (result && typeof result === "object" && "status" in result) {
+      const { status, ...data } = result as { status: number } & Record<string, any>;
+      return res.status(status as number).json({ success: true, ...data });
+    }
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (error: any) {
+    console.error("callService error:", error);
     if (error instanceof BusinessLogicError) {
-      return res.status(400).json({ success: false, message: error.message });
+      return res
+        .status(error.statusCode)
+        .json({ success: false, message: error.message });
     }
-
-    // Handle authentication errors
-    if (error instanceof Error && error.message === "Invalid credentials") {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    res.status(500).json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

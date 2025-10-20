@@ -4,12 +4,8 @@ import { ValidationError } from "../../utils/Error";
 // Payload for JWT token
 export interface VendorPayload {
   _id: string;
-  email: string;
-  name: string;
-  ownerName: string;
-  foodType: string[];
   role: "vendor";
-  serviceAvailable: boolean;
+  email: string;
 }
 
 // For creating a new vendor

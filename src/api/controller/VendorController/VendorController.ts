@@ -26,7 +26,6 @@ export default class VendorController implements IVendorController {
         loginVendor
       );
 
-      // Step 3: Handle HTTP response concerns ONLY
       // Set refresh token as secure HTTP-only cookie
       payload.res.cookie("refreshToken", loginResponse.refreshToken, {
         httpOnly: true,
@@ -34,8 +33,7 @@ export default class VendorController implements IVendorController {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
-      // Step 4: Format and RETURN data (not res.send!)
-      // Your callService will handle the actual HTTP response
+      // Step 4: Format and RETURN data (not res.send!) callService will handle the actual HTTP response
       const vendorResponse = new VendorResponseDTO(loginResponse.vendor);
 
       return {
@@ -55,6 +53,14 @@ export default class VendorController implements IVendorController {
           },
         };
       }
+      throw error;
+    }
+  };
+
+  refreshTokenRegenerate = async (payload: ControllerPayload) => {
+    try {
+    } catch (error) {
+      console.error("Error in refreshTokenRegenerate:", error);
       throw error;
     }
   };
@@ -88,7 +94,7 @@ export default class VendorController implements IVendorController {
     }
   };
 
-  updateProfile = async (payload: ControllerPayload) => {
+  updateOwnerProfile = async (payload: ControllerPayload) => {
     try {
       const EditVendorProfile: EditVendorProfileDTO = new EditVendorProfileDTO(
         payload.req.body
@@ -98,12 +104,12 @@ export default class VendorController implements IVendorController {
         return {
           status: 401,
           error: {
-            message: "User not authenticated"
-          }
+            message: "User not authenticated",
+          },
         };
       }
 
-      const updatedVendor = await this.vendorService.updateProfile(
+      const updatedVendor = await this.vendorService.updateOwnerProfile(
         EditVendorProfile,
         user._id?.toString()
       );
@@ -112,15 +118,15 @@ export default class VendorController implements IVendorController {
         return {
           status: 404,
           error: {
-            message: "Vendor not found"
-          }
+            message: "Vendor not found",
+          },
         };
       }
 
       return {
         status: 200,
         vendor: new VendorResponseDTO(updatedVendor),
-        message: "Vendor profile updated successfully"
+        message: "Vendor profile updated successfully",
       };
     } catch (error: any) {
       console.error("Error in updateProfile:", error);
@@ -128,22 +134,78 @@ export default class VendorController implements IVendorController {
         status: 500,
         error: {
           message: "Internal server error",
-          details: error.message
-        }
+          details: error.message,
+        },
       };
     }
   };
 
-  updateShopImage = (payload: any) => {
-    throw new Error("Method not implemented");
+  updateShopImage = async (payload: ControllerPayload) => {
+    try {
+      const user: AuthPayload | undefined = payload.req.user;
+      if (!user) {
+        return {
+          status: 401,
+          error: {
+            message: "User not authenticated",
+          },
+        };
+      }
+
+      const file: Express.Multer.File | undefined = payload.req.file;
+      if (!file) {
+        return {
+          status: 400,
+          error: {
+            message: "No file uploaded",
+          },
+        };
+      }
+      const updatedVendor = await this.vendorService.updateShopImage(
+        user._id?.toString(),
+        file
+      );
+
+      if (!updatedVendor) {
+        return {
+          status: 404,
+          error: {
+            message: "Vendor not found",
+          },
+        };
+      }
+
+      return {
+        status: 200,
+        vendor: new VendorResponseDTO(updatedVendor),
+        message: "Vendor profile updated successfully",
+      };
+    } catch (error: any) {
+      console.error("Error in updateShopImage:", error);
+      return {
+        status: 500,
+        error: {
+          message: "Internal server error",
+          details: error.message,
+        },
+      };
+    }
   };
 
-  vendorAddFoods = (payload: any) => {
-    throw new Error("Method not implemented");
+  vendorAddFoods = async (payload: ControllerPayload) => {
+    try {
+    } catch (error) {
+      console.error("Error in vendorAddFoods:", error);
+      throw error;
+    }
   };
 
-  fetchAllFood = (payload: any) => {
-    throw new Error("Method not implemented");
+  fetchAllFood = async (payload: ControllerPayload) => {
+    try {
+    } catch (error) {
+      console.error("Error in fetchAllFood:", error);
+      throw error;
+    }
   };
 
   getCurrentOrder = (payload: any) => {

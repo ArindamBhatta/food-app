@@ -37,9 +37,9 @@ export default class VendorService implements IVendorService {
   vendorLogin = async (loginVendor: LoginVendorDTO): Promise<LoginResponse> => {
     try {
       // Step 1: Find vendor via email
-      const vendor: VendorDoc | null = await this.vendorRepo.findVendor(
-        loginVendor.email
-      );
+      const vendor: VendorDoc | null = await this.vendorRepo.findVendor({
+        email: loginVendor.email,
+      });
 
       if (!vendor) {
         throw new Error("Invalid credentials");
@@ -56,21 +56,17 @@ export default class VendorService implements IVendorService {
         throw new Error("Invalid credentials");
       }
 
-      // Step 3: Create vendor-specific payload that conforms to AuthPayload
+      // Step 3: Create vendor-specific payload
       const authPayload: VendorPayload = {
-        _id: vendor._id?.toString() || vendor.id?.toString(), // FIXED: Handle unknown _id type
-        email: vendor.email,
-        name: vendor.name,
-        ownerName: vendor.ownerName,
-        foodType: vendor.foodType,
+        _id: vendor._id?.toString() || vendor.id?.toString(),
         role: "vendor",
-        serviceAvailable: vendor.serviceAvailable,
+        email: vendor.email,
       };
 
-      // Step 4: Generate access token using existing utility
+      // Step 4: Generate access token
       const accessToken = generateAccessToken(authPayload);
 
-      // Step 5: Generate refresh token using existing utility
+      // Step 5: Generate refresh token
       const refreshToken = generateRefreshToken(authPayload);
 
       // Step 6: Save refresh token in database
@@ -95,9 +91,9 @@ export default class VendorService implements IVendorService {
   vendorProfile = async (vendorId: string): Promise<VendorDoc | null> => {
     try {
       // Step 1: Find vendor via ID
-      const vendor: VendorDoc | null = await this.vendorRepo.findVendor(
-        vendorId
-      );
+      const vendor: VendorDoc | null = await this.vendorRepo.findVendor({
+        vendorId,
+      });
 
       if (!vendor) {
         throw new Error("Vendor not found");
@@ -110,13 +106,30 @@ export default class VendorService implements IVendorService {
     }
   };
 
-  updateProfile = async (
+  updateOwnerProfile = async (
     UpdateVendorProfile: EditVendorProfileDTO,
     vendorId: string
   ): Promise<VendorDoc | null> => {
     try {
       const updatedVendor: VendorDoc | null =
-        await this.vendorRepo.updateProfile(vendorId, UpdateVendorProfile);
+        await this.vendorRepo.updateOwnerProfile(vendorId, UpdateVendorProfile);
+      if (!updatedVendor) {
+        throw new Error("failed to update vendor profile");
+      }
+      return updatedVendor;
+    } catch (error) {
+      console.error("Error in updateProfile:", error);
+      throw error;
+    }
+  };
+
+  updateShopImage = async (
+    vendorId: string,
+    file: Express.Multer.File
+  ): Promise<VendorDoc | null> => {
+    try {
+      const updatedVendor: VendorDoc | null =
+        await this.vendorRepo.updateShopImage(vendorId, file);
       if (!updatedVendor) {
         throw new Error("failed to update vendor profile");
       }

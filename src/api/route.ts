@@ -26,7 +26,7 @@ const routes: RouteMap = {
     //add-food
   },
   [HttpMethod.PATCH]: {
-    "update-vendor-profile": [auth(["vendor"]), vendorController.updateProfile],
+    "update-vendor-profile": [auth(), vendorController.updateProfile],
     // "update-vendor-cover-image"
     // "update-vendor-service"
   },
