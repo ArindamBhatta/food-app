@@ -1,6 +1,7 @@
 import { HttpMethod } from "../constants";
 import { adminController, vendorController } from "./controller";
 import { auth } from "./middleware/auth.middleware";
+import { upload } from "./middleware/multer.middleware";
 import { RequestHandler } from "express";
 type ControllerFn = (payload: any) => Promise<any>;
 // A route can be a single controller or an array where middlewares precede the controller
@@ -26,8 +27,15 @@ const routes: RouteMap = {
     //add-food
   },
   [HttpMethod.PATCH]: {
-    "update-vendor-profile": [auth(), vendorController.updateProfile],
-    // "update-vendor-cover-image"
+    "update-vendor-profile": [
+      auth(["vendor"]),
+      vendorController.updateOwnerProfile,
+    ],
+    "update-vendor-cover-image": [
+      auth(["vendor"]),
+      upload.single("shopImage"),
+      vendorController.updateShopImage,
+    ],
     // "update-vendor-service"
   },
   [HttpMethod.PUT]: {},

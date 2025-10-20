@@ -1,14 +1,21 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { Request } from "express";
 
-// Configure storage (destination + filename)
+//multer does store the uploaded file when you use the diskStorage engine
+//Storage is mandatory - Multer requires a storage configuration
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    const uploadDir = path.join(process.cwd(), "uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const extImgPath = path.extname(file.originalname);
+    const extImgPath = path.extname(file.originalname); //extImgPath is the original file extension (e.g., .jpg)
     const uniqueName = `${Date.now()}${extImgPath}`;
     cb(null, uniqueName);
   },
@@ -20,7 +27,11 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
     cb(null, true);
   } else {
     cb(new Error("Only image files are allowed!"));
@@ -32,6 +43,6 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB
+    fileSize: 5 * 1024 * 1024, // 5MB
   },
 });
