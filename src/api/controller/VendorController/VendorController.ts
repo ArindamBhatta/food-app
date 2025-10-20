@@ -161,6 +161,7 @@ export default class VendorController implements IVendorController {
           },
         };
       }
+      //upload file in multer and update in database
       const updatedVendor = await this.vendorService.updateShopImage(
         user._id?.toString(),
         file

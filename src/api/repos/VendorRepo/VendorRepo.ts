@@ -95,7 +95,7 @@ export default class VendorRepo implements IVendorRepo {
     try {
       const updatedVendor: VendorDoc | null = await this.db.findByIdAndUpdate(
         vendorId,
-        { $set: { shopImage: file.filename } },
+        { $set: { coverImage: file.filename } },
         { new: true, runValidators: true }
       );
 

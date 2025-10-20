@@ -212,6 +212,7 @@ export class VendorResponseDTO {
   pincode: string;
   foodType: string[];
   rating: number;
+  coverImage: string[];
   serviceAvailable: boolean;
   createdAt?: Date;
   updatedAt?: Date;

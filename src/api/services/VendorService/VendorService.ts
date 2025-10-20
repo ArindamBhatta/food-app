@@ -128,6 +128,7 @@ export default class VendorService implements IVendorService {
     file: Express.Multer.File
   ): Promise<VendorDoc | null> => {
     try {
+      //upload file in cloudinary and update in database
       const updatedVendor: VendorDoc | null =
         await this.vendorRepo.updateShopImage(vendorId, file);
       if (!updatedVendor) {
