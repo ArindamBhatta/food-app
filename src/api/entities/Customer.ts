@@ -13,7 +13,7 @@ interface CustomerDoc extends Document {
   otp_expiry: Date;
   lat: number;
   lng: number;
-  cart: [any];
+  cart: any[];
   orders: Types.ObjectId[];
 }
 

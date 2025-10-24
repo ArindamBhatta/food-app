@@ -69,7 +69,9 @@ export default class FoodController implements IFoodController {
         };
       }
 
-      const foods = await this.foodService.getFoods(user._id?.toString() as string);
+      const foods = await this.foodService.getFoods(
+        user._id?.toString() as string
+      );
 
       return {
         status: 200,
@@ -84,4 +86,88 @@ export default class FoodController implements IFoodController {
       };
     }
   };
+
+  // getCurrentOrder = async (payload: ControllerPayload) => {
+  //   try {
+  //     const user: AuthPayload | undefined = payload.req.user;
+  //     if (!user) {
+  //       return {
+  //         status: 401,
+  //         error: { message: "User not authenticated" },
+  //       };
+  //     }
+
+  //     const currentOrder = await this.foodService.getCurrentOrder(
+  //       user._id?.toString() as string
+  //     );
+
+  //     return {
+  //       status: 200,
+  //       currentOrder,
+  //       message: "Current order fetched successfully",
+  //     };
+  //   } catch (error: any) {
+  //     console.error("Error in getCurrentOrder:", error);
+  //     return {
+  //       status: 500,
+  //       error: { message: "Internal server error", details: error.message },
+  //     };
+  //   }
+  // };
+
+  // getCurrentOrder = async (payload: ControllerPayload) => {
+  //   try {
+  //     const user: AuthPayload | undefined = payload.req.user;
+  //     if (!user) {
+  //       return {
+  //         status: 401,
+  //         error: { message: "User not authenticated" },
+  //       };
+  //     }
+
+  //     const currentOrder = await this.foodService.getCurrentOrder(
+  //       user._id?.toString() as string
+  //     );
+
+  //     return {
+  //       status: 200,
+  //       currentOrder,
+  //       message: "Current order fetched successfully",
+  //     };
+  //   } catch (error: any) {
+  //     console.error("Error in getCurrentOrder:", error);
+  //     return {
+  //       status: 500,
+  //       error: { message: "Internal server error", details: error.message },
+  //     };
+  //   }
+  // };
+
+  // getOrderById = async (payload: ControllerPayload) => {
+  //   try {
+  //     const user: AuthPayload | undefined = payload.req.user;
+  //     if (!user) {
+  //       return {
+  //         status: 401,
+  //         error: { message: "User not authenticated" },
+  //       };
+  //     }
+
+  //     const order = await this.foodService.getOrderById(
+  //       user._id?.toString() as string
+  //     );
+
+  //     return {
+  //       status: 200,
+  //       order,
+  //       message: "Order fetched successfully",
+  //     };
+  //   } catch (error: any) {
+  //     console.error("Error in getOrderById:", error);
+  //     return {
+  //       status: 500,
+  //       error: { message: "Internal server error", details: error.message },
+  //     };
+  //   }
+  // };
 }
