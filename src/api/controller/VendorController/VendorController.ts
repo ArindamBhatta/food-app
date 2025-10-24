@@ -151,8 +151,9 @@ export default class VendorController implements IVendorController {
           },
         };
       }
-
+      //2)extract file from request.Multer
       const file: Express.Multer.File | undefined = payload.req.file;
+
       if (!file) {
         return {
           status: 400,
@@ -161,7 +162,7 @@ export default class VendorController implements IVendorController {
           },
         };
       }
-      //upload file in multer and update in database
+      //3)send to business logic layer
       const updatedVendor = await this.vendorService.updateShopImage(
         user._id?.toString(),
         file
@@ -190,6 +191,14 @@ export default class VendorController implements IVendorController {
           details: error.message,
         },
       };
+    }
+  };
+
+  updateVendorService = async (payload: ControllerPayload) => {
+    try {
+    } catch (error) {
+      console.error("Error in updateVendorService:", error);
+      throw error;
     }
   };
 

@@ -11,6 +11,7 @@ import {
   LoginVendorDTO,
   VendorPayload,
 } from "../../dto/interface/Vendor.dto";
+import { uploadBuffer } from "../../utils/cloudinaryUpload";
 
 export default class VendorService implements IVendorService {
   private vendorRepo: VendorRepo;
@@ -128,9 +129,14 @@ export default class VendorService implements IVendorService {
     file: Express.Multer.File
   ): Promise<VendorDoc | null> => {
     try {
-      //upload file in cloudinary and update in database
+      //1)upload file in cloudinary
+      const { secure_url } = await uploadBuffer(file);
+
+      //2)persist url in db via vendorRepo
       const updatedVendor: VendorDoc | null =
-        await this.vendorRepo.updateShopImage(vendorId, file);
+        await this.vendorRepo.updateShopImage(vendorId, secure_url);
+
+      //3) return updated vendor
       if (!updatedVendor) {
         throw new Error("failed to update vendor profile");
       }

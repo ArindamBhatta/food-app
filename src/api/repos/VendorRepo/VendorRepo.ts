@@ -90,12 +90,12 @@ export default class VendorRepo implements IVendorRepo {
 
   updateShopImage = async (
     vendorId: string,
-    file: Express.Multer.File
+    imageUrl: string
   ): Promise<VendorDoc | null> => {
     try {
       const updatedVendor: VendorDoc | null = await this.db.findByIdAndUpdate(
         vendorId,
-        { $set: { coverImage: file.filename } },
+        { $push: { coverImages: imageUrl } },
         { new: true, runValidators: true }
       );
 

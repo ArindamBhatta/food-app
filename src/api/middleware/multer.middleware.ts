@@ -3,23 +3,11 @@ import path from "path";
 import fs from "fs";
 import { Request } from "express";
 
-//multer does store the uploaded file when you use the diskStorage engine
-//Storage is mandatory - Multer requires a storage configuration
+//Using memoryStorage to keep files in buffer for Cloudinary upload
+//This avoids saving files locally and provides file.buffer for cloud upload
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), "uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const extImgPath = path.extname(file.originalname); //extImgPath is the original file extension (e.g., .jpg)
-    const uniqueName = `${Date.now()}${extImgPath}`;
-    cb(null, uniqueName);
-  },
-});
+// Use memory storage for Cloudinary uploads (keeps file in buffer)
+const storage = multer.memoryStorage();
 
 // Optional: filter allowed file types
 const fileFilter = (
