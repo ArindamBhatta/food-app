@@ -1,40 +1,129 @@
-### Admin specific work
+````
+# Food Delivery App Database Design NoSQL
 
-1. Admin can create vendors
+### 1. Customers Collection
 
-2. Admin gets a list of all vendors
+```javascript
+{
+id: ObjectId("..."),
+// not create a new collection of cart
+cart: [
+       {
+        foodId: { type: Schema.Types.ObjectId, ref: "food", require: true },
+        unit: { type: Number, require: true },
+       },
 
-3. 3. Admin gets details of a specific vendor.
+       {
+        foodId: { type: Schema.Types.ObjectId, ref: "food", require: true },
+        unit: { type: Number, require: true },
+       },
+    ],
+//one to many
+orders: [
+          {
+            type: Schema.Types.ObjectId, ref: "order"
+          },
 
-### Vendor specific work
+          {
+            type: Schema.Types.ObjectId, ref: "order"
+          }
+        ],
+}
 
-1.Vendor can view his own profile.
+````
 
-2.Vendor can update his own profile.
+### 2. Vendors Collection
 
-3. Vendor can add Food.
+```javascript
+{
+  _id: ObjectId("..."),
+  //if we store foods id's in an array, we don't needs to fetch foods collection to get food details
+  foods: [
+            {
+                type: mongoose.SchemaTypes.ObjectId,
+                ref: "food",
+            },
 
-### Create a vendor
+            {
+                type: mongoose.SchemaTypes.ObjectId,
+                ref: "food",
+            },
+  ],
+}
+```
 
-steps: -
+### 3. Orders Collection
 
-1. AdminRoute -> go to create a vendor route
+```javascript
+{
+  _id: ObjectId("..."),
+  orderNumber: String, // Unique order number
+  customerId: ObjectId("..."),
+  customerName: String,
+  vendorId: ObjectId("..."),
+  vendorName: String,
+  items: [
+    {},
+    {},
+    {}
+  ],
+  subtotal: Number,
+  deliveryFee: Number,
+  tax: Number,
+  total: Number,
+  deliveryAddress: {
+    street: String,
+    city: String,
+    state: String,
+    zipCode: String,
+    coordinates: {
+      type: String,
+      coordinates: [Number, Number]
+    }
+  },
+  status: String,
+  payment: {
+    method: String, // 'card', 'cash', 'online_payment'
+    status: String, // 'pending', 'completed', 'failed', 'refunded'
+    transactionId: String,
+    amount: Number
+  },
+  deliveryPerson: {
+    id: ObjectId("..."),
+    name: String,
+    phone: String
+  },
+  estimatedDeliveryTime: Date,
+  deliveredAt: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-2. AdminController -> create a method call createVendor
-   2.1. DTO -> a interface for checking request body is valid or not
-   2.2. find the vendor email is already exist.
-   2.3. if not exist generate a salt bcrypt.genSalt();
-   2.4. then send the user password and salt. to generate password.
-   2.5. store everything in database.
+### 4. DeliveryPersons Collection
 
-   ### mongoose update method
-
-   Model.updateOne(), Model.updateMany(), Model.findByIdAndUpdate() skip schema validation.
-   This is because these methods operate directly at the MongoDB level, without loading a Mongoose document into memory
-
-   - minlength: 3 -> ✅ No error — it will save "A" to the database, even though it breaks your schema rule
-   - runValidators: true
-
-   ### mongoose hook
-
-   - Runs Mongoose middleware/hooks (pre('save'), post('save')).
+```javascript
+{
+  _id: ObjectId("..."),
+  name: String,
+  email: String,
+  phone: String,
+  password: String,
+  vehicle: {
+    type: String, // 'bike', 'scooter', 'bicycle', 'car'
+    number: String
+  },
+  currentLocation: {
+    type: String, // 'Point'
+    coordinates: [Number, Number], // [longitude, latitude]
+    lastUpdated: Date
+  },
+  isAvailable: Boolean,
+  isActive: Boolean,
+  rating: Number,
+  totalDeliveries: Number,
+  currentOrder: ObjectId("..."), // Reference to current order
+  createdAt: Date,
+  updatedAt: Date
+}
+```
