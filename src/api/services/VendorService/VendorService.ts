@@ -11,7 +11,7 @@ import {
   LoginVendorDTO,
   VendorPayload,
 } from "../../dto/interface/Vendor.dto";
-import { uploadBuffer } from "../../utils/cloudinaryUpload";
+import { uploadBuffer } from "../../utils/UploadPicture.utility";
 
 export default class VendorService implements IVendorService {
   private vendorRepo: VendorRepo;

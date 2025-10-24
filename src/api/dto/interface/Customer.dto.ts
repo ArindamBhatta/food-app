@@ -1,48 +1,46 @@
-import { IsEmail, IsPhoneNumber, Length } from "class-validator";
-import { Document } from 'mongoose';
-
 // Payload for JWT token
 export interface CustomerPayload {
   _id: string;
   email: string;
   verified: boolean;
-  role: 'customer';
+  role: "customer";
 }
 
 // Signup DTO
-export class CreateCustomerInput {
-  @IsEmail()
+export class CreateCustomerDTO {
   email: string;
-
-  @Length(6, 20)
   password: string;
-
-  @IsPhoneNumber("IN")
   phone: string;
 
-  // Additional fields can be added here
-  [key: string]: any;
+  constructor(data: any) {
+    this.email = data?.email;
+    this.password = data?.password;
+    this.phone = data?.phone;
+  }
 }
 
 // Login DTO
-export class UserLoginInputs {
-  @IsEmail()
+export class CustomerLoginDTO {
   email: string;
-
-  @Length(6, 20)
   password: string;
+
+  constructor(data: any) {
+    this.email = data?.email;
+    this.password = data?.password;
+  }
 }
 
 // Edit profile DTO
 export class EditCustomerProfileInputs {
-  @Length(3, 20)
-  firstName: string;
-  
-  @Length(3, 20)
-  lastName: string;
-  
-  @Length(10, 100)
-  address: string;
+  firstName?: string;
+  lastName?: string;
+  address?: string;
+
+  constructor(data: any) {
+    if (data?.firstName !== undefined) this.firstName = data.firstName;
+    if (data?.lastName !== undefined) this.lastName = data.lastName;
+    if (data?.address !== undefined) this.address = data.address;
+  }
 }
 
 // Order related DTO
@@ -50,30 +48,6 @@ export class OrderInputs {
   _id: string;
   unit: number;
 }
-
-// For MongoDB document
-export interface ICustomer extends Document {
-  email: string;
-  password: string;
-  salt: string;
-  phone: string;
-  firstName: string;
-  lastName: string;
-  address: string;
-  verified: boolean;
-  otp: number;
-  otp_expiry: Date;
-  lat: number;
-  lng: number;
-  cart: any[];
-  orders: any[];
-  
-  comparePassword(password: string): Promise<boolean>;
-  generateToken(): string;
-  generatePasswordResetToken(): string;
-}
-
-// Response DTO for customer data
 export class CustomerResponseDTO {
   id: string;
   email: string;

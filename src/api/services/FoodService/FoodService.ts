@@ -2,7 +2,7 @@ import { FoodDoc, VendorDoc } from "../../entities";
 import { CreateFoodInput } from "../../dto/interface/Food.dto";
 import VendorRepo from "../../repos/VendorRepo/VendorRepo";
 import { UploadApiResponse } from "cloudinary";
-import { uploadBuffer } from "../../utils/cloudinaryUpload";
+import { uploadBuffer } from "../../utils/UploadPicture.utility";
 import IFoodService from "./FoodService.interface";
 import FoodRepo from "../../repos/FoodRepo/FoodRepo";
 
@@ -42,7 +42,9 @@ export default class FoodService implements IFoodService {
 
   getFoods = async (vendorId: string) => {
     // ensure vendor exists (optional but consistent with other flows)
-    const vendor: VendorDoc | null = await this.vendorRepo.findVendor({ vendorId });
+    const vendor: VendorDoc | null = await this.vendorRepo.findVendor({
+      vendorId,
+    });
     if (!vendor) {
       throw new Error("Vendor not found");
     }
