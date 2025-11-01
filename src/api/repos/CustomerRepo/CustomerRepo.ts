@@ -13,16 +13,16 @@ export default class CustomerRepo implements ICustomerRepo {
     phone?: string,
     id?: string
   ): Promise<CustomerDoc | null> => {
+    // If searching by ID only, use direct findById for better performance
+    if (id && !email && !phone) {
+      return this.db.findById(id);
+    }
+    
     const query: any = { $or: [] };
     
     if (email) query.$or.push({ email });
     if (phone) query.$or.push({ phone });
     if (id) query.$or.push({ _id: id });
-    
-    // Exclude current user when updating
-    if (id) {
-      query._id = { $ne: id };
-    }
     
     // If no search criteria provided, return null
     if (query.$or.length === 0) return null;

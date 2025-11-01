@@ -21,11 +21,13 @@ export class CreateCustomerDTO {
 
 // Login DTO
 export class CustomerLoginDTO {
-  email: string;
+  email?: string;
+  phone?: string;
   password: string;
 
   constructor(data: any) {
     this.email = data?.email;
+    this.phone = data?.phone;
     this.password = data?.password;
   }
 }

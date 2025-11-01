@@ -5,6 +5,8 @@ import {
   LoginVendorDTO,
   VendorResponseDTO,
 } from "../../dto/interface/Vendor.dto";
+import { CreateFoodInput, FoodResponse } from "../../dto/interface/Food.dto";
+import FoodService from "../../services/FoodService/FoodService";
 import { VendorDoc } from "../../entities";
 import VendorService from "../../services/VendorService/VendorService";
 import { LoginResponse } from "../../services/VendorService/VendorService.interface";
@@ -17,8 +19,10 @@ import IVendorController from "./VendorController.interface";
 
 export default class VendorController implements IVendorController {
   private vendorService: VendorService;
-  constructor(vendorService: VendorService) {
+  private foodService: FoodService;
+  constructor(vendorService: VendorService, foodService: FoodService) {
     this.vendorService = vendorService;
+    this.foodService = foodService;
   }
 
   vendorLogin = async (payload: ControllerPayload) => {
@@ -231,17 +235,80 @@ export default class VendorController implements IVendorController {
 
   vendorAddFoods = async (payload: ControllerPayload) => {
     try {
-    } catch (error) {
+      const user: AuthPayload | undefined = payload.req.user;
+      if (!user) {
+        return payload.res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const files = payload.req.files as Express.Multer.File[];
+      const createFoodInput: CreateFoodInput = new CreateFoodInput(
+        payload.req.body
+      );
+
+      const createdFood = await this.foodService.addFood(
+        user._id?.toString() as string,
+        createFoodInput,
+        files || []
+      );
+
+      const foodResponse: FoodResponse = {
+        id: createdFood.id,
+        name: createdFood.name,
+        description: createdFood.description,
+        category: createdFood.category,
+        foodType: createdFood.foodType,
+        readyTime: createdFood.readyTime,
+        price: createdFood.price,
+        rating: createdFood.rating,
+        images: (createdFood.images as unknown as string[]) || [],
+        createdAt: (createdFood as any).createdAt,
+        updatedAt: (createdFood as any).updatedAt,
+      };
+
+      return payload.res.status(201).json({
+        success: true,
+        food: foodResponse,
+        message: "Food added successfully",
+      });
+    } catch (error: any) {
       console.error("Error in vendorAddFoods:", error);
-      throw error;
+      return payload.res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        details: error.message,
+      });
     }
   };
 
   fetchAllFood = async (payload: ControllerPayload) => {
     try {
-    } catch (error) {
+      const user: AuthPayload | undefined = payload.req.user;
+      if (!user) {
+        return payload.res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
+      }
+
+      const foods = await this.foodService.getFoods(
+        user._id?.toString() as string
+      );
+
+      return payload.res.status(200).json({
+        success: true,
+        foods,
+        message: "Foods fetched successfully",
+      });
+    } catch (error: any) {
       console.error("Error in fetchAllFood:", error);
-      throw error;
+      return payload.res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        details: error.message,
+      });
     }
   };
 

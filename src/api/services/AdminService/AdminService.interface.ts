@@ -1,4 +1,4 @@
-import { CreateVendorDTO } from "../../dto/Vendor.dto";
+import { CreateVendorDTO } from "../../dto/interface/Vendor.dto";
 import { VendorDoc } from "../../entities";
 
 export default interface IAdminService {

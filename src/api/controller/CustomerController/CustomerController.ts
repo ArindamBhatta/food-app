@@ -97,21 +97,39 @@ export default class CustomerController implements ICustomerController {
   signIn = async (payload: ControllerPayload) => {
     try {
       const input: CustomerLoginDTO = payload.req.body;
-      const customer = await this.customerService.signIn(
-        input.email,
-        input.password
-      );
-      if (!customer) {
-        return payload.res.status(401).json({
-          error: { message: "Invalid email or password" },
+
+      // Validate that we have either email or phone to identify the user
+      if (!input.email && !input.phone) {
+        return payload.res.status(400).json({
+          error: { message: "Email or phone number is required for login" },
         });
       }
+
+      if (!input.password) {
+        return payload.res.status(400).json({
+          error: { message: "Password is required" },
+        });
+      }
+
+      const customer = await this.customerService.signIn(
+        input.password,
+        input.email,
+        input.phone
+      );
+
+      if (!customer) {
+        return payload.res.status(401).json({
+          error: { message: "Invalid credentials" },
+        });
+      }
+
       if (!customer.customer.verified) {
         return payload.res.status(403).json({
           error: { message: "Please verify OTP first." },
         });
       }
-      // Generate tokens after successful sign-in
+
+      // Generate only access token after successful sign-in
       const tokenPayload = {
         _id: (customer.customer._id as any).toString(),
         email: customer.customer.email,
@@ -119,11 +137,12 @@ export default class CustomerController implements ICustomerController {
         verified: customer.customer.verified,
       };
       const accessToken = generateAccessToken(tokenPayload);
-      const refreshToken = generateRefreshToken(tokenPayload);
+
       return payload.res.status(200).json({
         accessToken,
-        refreshToken,
         signature: customer.signature,
+        verified: customer.customer.verified,
+        email: customer.customer.email,
       });
     } catch (error: any) {
       return payload.res.status(500).json({
@@ -132,46 +151,39 @@ export default class CustomerController implements ICustomerController {
     }
   };
 
-  requestOtp = async (payload: ControllerPayload) => {
+  addDetailsOfUser = async (payload: ControllerPayload) => {
     try {
-      const input: CustomerLoginDTO = payload.req.body;
-      const customer = await this.customerService.requestOtp(input.email);
-      if (!customer) {
-        return payload.res.status(401).json({
-          error: { message: "Invalid email or password" },
-        });
-      }
-      return payload.res.status(200).json({
-        customer,
-      });
-    } catch (error: any) {
-      return payload.res.status(500).json({
-        error: { message: error.message || "Request OTP failed" },
-      });
-    }
-  };
-
-  fillProfile = async (payload: ControllerPayload) => {
-    try {
+      // 1. Use access token for access the user data. req.user
       const customer = payload.req.user;
-      const input: EditCustomerProfileInputs = payload.req.body;
 
-      if (!customer) {
+      if (!customer || !customer._id) {
         return payload.res.status(401).json({
           error: { message: "User not authenticated" },
         });
       }
+      // 2. EditCustomerProfileInputs DTO and update in repo layer
+      const input: EditCustomerProfileInputs = new EditCustomerProfileInputs(
+        payload.req.body
+      );
 
       const updatedCustomer = await this.customerService.updateProfile(
         customer._id.toString(),
         input
       );
+
+      if (!updatedCustomer) {
+        return payload.res.status(404).json({
+          error: { message: "Customer not found" },
+        });
+      }
+
       return payload.res.status(200).json({
+        message: "Profile updated successfully",
         customer: updatedCustomer,
       });
     } catch (error: any) {
       return payload.res.status(500).json({
-        error: { message: error.message || "Profile update failed" },
+        error: { message: error.message || "Operation failed" },
       });
     }
   };

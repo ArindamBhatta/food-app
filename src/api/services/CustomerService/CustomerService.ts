@@ -61,7 +61,12 @@ export default class CustomerService implements ICustomerService {
     phone?: string,
     customerId?: string
   ) => {
-    const customer = await this.customerRepo.verifyOtp(otp, email, phone, customerId);
+    const customer = await this.customerRepo.verifyOtp(
+      otp,
+      email,
+      phone,
+      customerId
+    );
     if (!customer) return { customer: null };
     const signature = generateAccessToken({
       _id: (customer._id as Types.ObjectId).toString(),
@@ -72,8 +77,8 @@ export default class CustomerService implements ICustomerService {
     return { customer, signature };
   };
 
-  signIn = async (email: string, password: string) => {
-    const customer = await this.customerRepo.existingCustomer(email);
+  signIn = async (password: string, email?: string, phone?: string) => {
+    const customer = await this.customerRepo.existingCustomer(email, phone);
     if (!customer) return null;
     const isPasswordValid = await verifyPassword(
       password,
@@ -90,8 +95,8 @@ export default class CustomerService implements ICustomerService {
     return { customer, signature };
   };
 
-  requestOtp = async (email: string) => {
-    const customer = await this.customerRepo.existingCustomer(email);
+  requestOtp = async (email?: string, phone?: string) => {
+    const customer = await this.customerRepo.existingCustomer(email, phone);
     if (!customer) return null;
     const { otp, expiry } = GenerateOpt();
     customer.otp = otp;
@@ -100,11 +105,24 @@ export default class CustomerService implements ICustomerService {
     return { customer };
   };
 
+  getCustomerById = async (customerId: string) => {
+    const customer = await this.customerRepo.existingCustomer(
+      undefined,
+      undefined,
+      customerId
+    );
+    return customer;
+  };
+
   updateProfile = async (
     customerId: string,
     input: EditCustomerProfileInputs
   ) => {
-    const customer = await this.customerRepo.existingCustomer(customerId);
+    const customer = await this.customerRepo.existingCustomer(
+      undefined,
+      undefined,
+      customerId
+    );
     if (!customer) return null;
     customer.firstName = input.firstName || customer.firstName;
     customer.lastName = input.lastName || customer.lastName;

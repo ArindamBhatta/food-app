@@ -4,7 +4,6 @@ import {
   vendorController,
   customerController,
 } from "./controller";
-import CustomerController from "./controller/CustomerController/CustomerController";
 import { auth } from "./middleware/auth.middleware";
 import { upload } from "./middleware/multer.middleware";
 import { RequestHandler } from "express";
@@ -24,15 +23,19 @@ const routes: RouteMap = {
     "vendor-by-id": adminController.getVendorById,
     "all-vendor": adminController.getAllVendor,
     "get-vendor-profile": [auth(["vendor"]), vendorController.vendorProfile],
-    //get-all-food
+    "get-all-food": [auth(["vendor"]), vendorController.fetchAllFood],
   },
   [HttpMethod.POST]: {
     "create-vendor": [auth(["admin"]), adminController.createVendor], // 🛡 admin-only
     "vendor-login": vendorController.vendorLogin,
-    //create-customer
     "create-customer": customerController.signUp,
     "otp-validation": customerController.otpVerify,
     "customer-login": customerController.signIn,
+    "add-food": [
+      auth(["vendor"]),
+      upload.array("images", 5),
+      vendorController.vendorAddFoods,
+    ],
   },
   [HttpMethod.PATCH]: {
     "update-vendor-profile": [
@@ -43,6 +46,10 @@ const routes: RouteMap = {
       auth(["vendor"]),
       upload.single("shopImage"),
       vendorController.updateShopImage,
+    ],
+    "customer-profile": [
+      auth(["customer"]),
+      customerController.addDetailsOfUser,
     ],
     // "update-vendor-service"
   },
