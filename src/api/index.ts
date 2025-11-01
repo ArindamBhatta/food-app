@@ -50,11 +50,7 @@ export default (): IRouter => {
   return router;
 };
 
-const callService = async (
-  method: HttpMethod,
-  req: Request,
-  res: Response
-) => {
+const callService = async (method: HttpMethod, req: Request, res: Response) => {
   const apiVersion: string = req.params.apiversion || ApiVersion.V1;
   const serviceName: string = req.params.service;
   console.log("callService", { method, serviceName });
@@ -67,11 +63,15 @@ const callService = async (
       serviceDef = routes[method]?.[serviceName];
       break;
     default:
-      return res.status(400).json({ success: false, message: "Unsupported API version" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Unsupported API version" });
   }
 
   if (!serviceDef) {
-    return res.status(404).json({ success: false, message: "Service not found" });
+    return res
+      .status(404)
+      .json({ success: false, message: "Service not found" });
   }
 
   try {
@@ -80,15 +80,14 @@ const callService = async (
 
     let result: any;
 
+    // If an array, meaning there are middlewares + controller
     if (Array.isArray(serviceDef)) {
-      // If an array, treat everything except the last item as middleware
       const middlewares = serviceDef.slice(0, -1) as RequestHandler[];
       const controller = serviceDef[serviceDef.length - 1] as any;
-
-      // Execute middlewares sequentially (they may mutate req/res)
-      for (const mw of middlewares) {
+      //1st  Execute middlewares sequentially
+      for (const middleware of middlewares) {
         await new Promise<void>((resolve, reject) => {
-          (mw as RequestHandler)(req, res, (err?: any) => {
+          (middleware as RequestHandler)(req, res, (err?: any) => {
             if (err) {
               reject(err);
             } else {
@@ -99,24 +98,14 @@ const callService = async (
         // If middleware already sent a response, stop further processing
         if (res.headersSent) return;
       }
-
-      // Execute controller
+      //2nd  Execute controller
       result = await controller(payload);
+      // if no middleware present
     } else {
-      // Single controller function
       const controller = serviceDef as any;
       result = await controller(payload);
     }
-
-    // If the controller already handled the response
-    if (res.headersSent) return;
-
-    if (result && typeof result === "object" && "status" in result) {
-      const { status, ...data } = result as { status: number } & Record<string, any>;
-      return res.status(status as number).json({ success: true, ...data });
-    }
-
-    return res.status(200).json({ success: true, data: result });
+    return;
   } catch (error: any) {
     console.error("callService error:", error);
     if (error instanceof BusinessLogicError) {
@@ -124,6 +113,8 @@ const callService = async (
         .status(error.statusCode)
         .json({ success: false, message: error.message });
     }
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };

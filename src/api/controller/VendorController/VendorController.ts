@@ -18,42 +18,30 @@ export default class VendorController implements IVendorController {
 
   vendorLogin = async (payload: ControllerPayload) => {
     try {
-      //Step 1: Extract and validate input (HTTP concern)
       const loginVendor: LoginVendorDTO = new LoginVendorDTO(payload.req.body);
-
-      //Step 2: Call business logic layer (delegate to service)
       const loginResponse: LoginResponse = await this.vendorService.vendorLogin(
         loginVendor
       );
-
-      // Set refresh token as secure HTTP-only cookie
       payload.res.cookie("refreshToken", loginResponse.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
-      // Step 4: Format and RETURN data (not res.send!) callService will handle the actual HTTP response
       const vendorResponse = new VendorResponseDTO(loginResponse.vendor);
-
-      return {
+      return payload.res.status(200).json({
+        success: true,
+        message: "Login successful",
         vendor: vendorResponse,
         accessToken: loginResponse.accessToken,
-        message: "Login successful",
-      };
+      });
     } catch (error: any) {
       console.error("Error in vendorLogin:", error);
-      if (error.name === "ValidationError" || error.statusCode === 400) {
-        return {
-          status: 500,
-          error: {
-            message: "Validation failed",
-            details: error.message,
-            stack: error.stack,
-          },
-        };
-      }
-      throw error;
+      return payload.res.status(500).json({
+        success: false,
+        message: error.message || "Login failed",
+        details: error.stack,
+      });
     }
   };
 
@@ -68,29 +56,32 @@ export default class VendorController implements IVendorController {
   //
   vendorProfile = async (payload: ControllerPayload) => {
     try {
-      //Step 1: frontend send the token verify the token
       const user: AuthPayload | undefined = payload.req.user;
-      if (user) {
-        const existingVendor: VendorDoc | null =
-          await this.vendorService.vendorProfile(user._id?.toString());
-        if (existingVendor) {
-          return {
-            status: 200,
-            vendor: existingVendor,
-            message: "Vendor profile fetched successfully",
-          };
-        }
-      } else {
-        return {
-          status: 401,
-          error: {
-            message: `User not found ${user}`,
-          },
-        };
+      if (!user) {
+        return payload.res.status(401).json({
+          success: false,
+          message: `User not found ${user}`,
+        });
       }
-    } catch (error) {
+      const existingVendor: VendorDoc | null =
+        await this.vendorService.vendorProfile(user._id?.toString());
+      if (!existingVendor) {
+        return payload.res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
+      }
+      return payload.res.status(200).json({
+        success: true,
+        vendor: existingVendor,
+        message: "Vendor profile fetched successfully",
+      });
+    } catch (error: any) {
       console.error("Error in vendorProfile:", error);
-      throw error;
+      return payload.res.status(500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
     }
   };
 
@@ -101,42 +92,33 @@ export default class VendorController implements IVendorController {
       );
       const user: AuthPayload | undefined = payload.req.user;
       if (!user) {
-        return {
-          status: 401,
-          error: {
-            message: "User not authenticated",
-          },
-        };
+        return payload.res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
       }
-
       const updatedVendor = await this.vendorService.updateOwnerProfile(
         EditVendorProfile,
         user._id?.toString()
       );
-
       if (!updatedVendor) {
-        return {
-          status: 404,
-          error: {
-            message: "Vendor not found",
-          },
-        };
+        return payload.res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
       }
-
-      return {
-        status: 200,
+      return payload.res.status(200).json({
+        success: true,
         vendor: new VendorResponseDTO(updatedVendor),
         message: "Vendor profile updated successfully",
-      };
+      });
     } catch (error: any) {
       console.error("Error in updateProfile:", error);
-      return {
-        status: 500,
-        error: {
-          message: "Internal server error",
-          details: error.message,
-        },
-      };
+      return payload.res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        details: error.message,
+      });
     }
   };
 
@@ -144,53 +126,40 @@ export default class VendorController implements IVendorController {
     try {
       const user: AuthPayload | undefined = payload.req.user;
       if (!user) {
-        return {
-          status: 401,
-          error: {
-            message: "User not authenticated",
-          },
-        };
+        return payload.res.status(401).json({
+          success: false,
+          message: "User not authenticated",
+        });
       }
-      //2)extract file from request.Multer
       const file: Express.Multer.File | undefined = payload.req.file;
-
       if (!file) {
-        return {
-          status: 400,
-          error: {
-            message: "No file uploaded",
-          },
-        };
+        return payload.res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
       }
-      //3)send to business logic layer
       const updatedVendor = await this.vendorService.updateShopImage(
         user._id?.toString(),
         file
       );
-
       if (!updatedVendor) {
-        return {
-          status: 404,
-          error: {
-            message: "Vendor not found",
-          },
-        };
+        return payload.res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
       }
-
-      return {
-        status: 200,
+      return payload.res.status(200).json({
+        success: true,
         vendor: new VendorResponseDTO(updatedVendor),
         message: "Vendor profile updated successfully",
-      };
+      });
     } catch (error: any) {
       console.error("Error in updateShopImage:", error);
-      return {
-        status: 500,
-        error: {
-          message: "Internal server error",
-          details: error.message,
-        },
-      };
+      return payload.res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        details: error.message,
+      });
     }
   };
 
