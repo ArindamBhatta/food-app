@@ -56,3 +56,5 @@ The codebase is organized in layers to enforce separation of concerns:
 ---
 
 **This project is architected for real-world scalability and maintainability. Built with Clean Architecture principles for professional Node.js applications.**
+
+---

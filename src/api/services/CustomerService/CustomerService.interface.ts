@@ -6,7 +6,9 @@ export default interface ICustomerService {
     input: CreateCustomerDTO
   ): Promise<{ customer: CustomerDoc; otp: number }>;
   verifyOtp(
-    customerId: string,
-    otp: number
+    otp: number,
+    email?: string,
+    phone?: string,
+    customerId?: string
   ): Promise<{ customer: CustomerDoc | null; signature?: string }>;
 }

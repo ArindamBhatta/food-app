@@ -2,6 +2,7 @@ import { ControllerPayload } from "../../../constants";
 import {
   CreateCustomerDTO,
   CustomerLoginDTO,
+  CustomerPayload,
   EditCustomerProfileInputs,
 } from "../../dto/interface/Customer.dto";
 import ICustomerController from "./CustomerController.interface";
@@ -10,64 +11,86 @@ import { Food } from "../../entities/Food";
 import { OrderInputs } from "../../dto/interface/Customer.dto";
 import CustomerService from "../../services/CustomerService/CustomerService";
 import { AuthPayload } from "../../dto/Auth.dto";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../../utils/auth.utility";
 
 export default class CustomerController implements ICustomerController {
   private customerService: CustomerService;
   constructor(customerService: CustomerService) {
     this.customerService = customerService;
   }
-  AddToCart: (payload: ControllerPayload) => any;
 
   signUp = async (payload: ControllerPayload) => {
     try {
       const input: CreateCustomerDTO = new CreateCustomerDTO(payload.req.body);
-      const { customer, otp } = await this.customerService.signUp(input);
-      // Optionally send OTP here
-      return {
-        status: 201,
-        customer,
-        otp, // In production, never return OTP in response!
-        message: "Customer created, OTP sent",
-      };
+      const { otp } = await this.customerService.signUp(input);
+
+      // Don't generate tokens here - wait for OTP verification
+      return payload.res.status(201).json({
+        otp,
+        message:
+          "Customer created, OTP sent. Please verify OTP to complete registration.",
+      });
     } catch (error: any) {
-      return {
-        status: 500,
+      return payload.res.status(500).json({
         error: { message: error.message || "Customer signup failed" },
-      };
+      });
     }
   };
 
   otpVerify = async (payload: ControllerPayload) => {
     try {
-      const { otp } = payload.req.body;
-      const customer = payload.req.user;
-      if (!customer || !customer._id) {
-        return {
-          status: 401,
-          error: { message: "User not authenticated" },
-        };
+      const { otp, email, phone } = payload.req.body;
+
+      // Validate that we have either email or phone to identify the user
+      if (!email && !phone) {
+        return payload.res.status(400).json({
+          error: {
+            message: "Email or phone number is required for OTP verification",
+          },
+        });
       }
+
+      if (!otp) {
+        return payload.res.status(400).json({
+          error: { message: "OTP is required" },
+        });
+      }
+
       const result = await this.customerService.verifyOtp(
-        customer._id.toString(),
-        parseInt(otp)
+        parseInt(otp),
+        email,
+        phone
       );
+
       if (!result.customer) {
-        return {
-          status: 400,
+        return payload.res.status(400).json({
           error: { message: "Invalid OTP or Expired" },
-        };
+        });
       }
-      return {
-        status: 201,
-        signature: result.signature,
+
+      // Generate tokens after OTP verification
+      const authPayload: CustomerPayload = {
+        _id: (result.customer._id as any).toString(),
+        email: result.customer.email,
+        role: "customer" as const,
+        verified: result.customer.verified,
+      };
+      const accessToken = generateAccessToken(authPayload);
+      const refreshToken = generateRefreshToken(authPayload);
+
+      return payload.res.status(201).json({
+        accessToken,
+        refreshToken,
         verified: result.customer.verified,
         email: result.customer.email,
-      };
+      });
     } catch (error: any) {
-      return {
-        status: 500,
+      return payload.res.status(500).json({
         error: { message: error.message || "OTP verification failed" },
-      };
+      });
     }
   };
 
@@ -79,20 +102,33 @@ export default class CustomerController implements ICustomerController {
         input.password
       );
       if (!customer) {
-        return {
-          status: 401,
+        return payload.res.status(401).json({
           error: { message: "Invalid email or password" },
-        };
+        });
       }
-      return {
-        status: 200,
+      if (!customer.customer.verified) {
+        return payload.res.status(403).json({
+          error: { message: "Please verify OTP first." },
+        });
+      }
+      // Generate tokens after successful sign-in
+      const tokenPayload = {
+        _id: (customer.customer._id as any).toString(),
+        email: customer.customer.email,
+        role: "customer" as const,
+        verified: customer.customer.verified,
+      };
+      const accessToken = generateAccessToken(tokenPayload);
+      const refreshToken = generateRefreshToken(tokenPayload);
+      return payload.res.status(200).json({
+        accessToken,
+        refreshToken,
         signature: customer.signature,
-      };
+      });
     } catch (error: any) {
-      return {
-        status: 500,
+      return payload.res.status(500).json({
         error: { message: error.message || "Sign-in failed" },
-      };
+      });
     }
   };
 
@@ -101,43 +137,45 @@ export default class CustomerController implements ICustomerController {
       const input: CustomerLoginDTO = payload.req.body;
       const customer = await this.customerService.requestOtp(input.email);
       if (!customer) {
-        return {
-          status: 401,
+        return payload.res.status(401).json({
           error: { message: "Invalid email or password" },
-        };
+        });
       }
-      return {
-        status: 200,
+      return payload.res.status(200).json({
         customer,
-      };
+      });
     } catch (error: any) {
-      return {
-        status: 500,
-        error: { message: error.message || "Sign-in failed" },
-      };
+      return payload.res.status(500).json({
+        error: { message: error.message || "Request OTP failed" },
+      });
     }
   };
 
   fillProfile = async (payload: ControllerPayload) => {
-    const customer = payload.req.user;
+    try {
+      const customer = payload.req.user;
+      const input: EditCustomerProfileInputs = payload.req.body;
 
-    const input: EditCustomerProfileInputs = payload.req.body;
+      if (!customer) {
+        return payload.res.status(401).json({
+          error: { message: "User not authenticated" },
+        });
+      }
 
-    if (customer) {
       const updatedCustomer = await this.customerService.updateProfile(
         customer._id.toString(),
         input
       );
-      return {
-        status: 200,
+      return payload.res.status(200).json({
         customer: updatedCustomer,
-      };
+      });
+    } catch (error: any) {
+      return payload.res.status(500).json({
+        error: { message: error.message || "Profile update failed" },
+      });
     }
-    return {
-      status: 401,
-      error: { message: "User not authenticated" },
-    };
   };
+
   // card section
   addToCart = async (payload: ControllerPayload) => {
     const customer = payload.req.user as AuthPayload;
@@ -206,6 +244,7 @@ export default class CustomerController implements ICustomerController {
       error: { message: "Card is empty" },
     };
   };
+  AddToCart: (payload: ControllerPayload) => any;
 
   removeFromCart = async (payload: ControllerPayload) => {
     const customer = payload.req.user;
@@ -240,64 +279,15 @@ export default class CustomerController implements ICustomerController {
     };
   };
 
-  //order section
   createOrder = async (payload: ControllerPayload) => {
     try {
-      // // 1. Get current logged-in customer
-      // const customer = req.user as CustomerDoc;
-      // if (!customer) {
-      //   return res.status(401).json({ message: "Unauthorized" });
-      // }
-      // // 2. Find customer profile
-      // const profile = await Customer.findById(customer._id);
-      // if (!profile) {
-      //   return res.status(404).json({ message: "Customer not found" });
-      // }
-      // // 3. Get cart from request body
-      // const cart: OrderInputs[] = req.body as OrderInputs[];
-      // if (!cart || cart.length === 0) {
-      //   return res.status(400).json({ message: "Cart is empty" });
-      // }
-      // // 4. Create order id
-      // const orderId = new Types.ObjectId().toString();
-      // let netAmount = 0;
-      // let cartItems: { foodId: string; unit: number }[] = [];
-      // // 5. Fetch all foods in the cart
-      // const foods = await Food.find()
-      //   .where("_id")
-      //   .in(cart.map((item) => item._id))
-      //   .exec();
-      // // 6. Match foods with cart items and calculate total
-      // foods.forEach((food) => {
-      //   cart.forEach(({ _id, unit }) => {
-      //     if (food._id.toString() === _id) {
-      //       netAmount += food.price * unit;
-      //       cartItems.push({ foodId: food._id.toString(), unit });
-      //     }
-      //   });
-      // });
-      // if (cartItems.length === 0) {
-      //   return res.status(400).json({ message: "Invalid cart items" });
-      // }
-      // // 7. Create order
-      // const currentOrder = await Order.create({
-      //   orderID: orderId,
-      //   items: cartItems,
-      //   totalAmount: netAmount,
-      //   paidThrough: "COD",
-      //   paymentResponse: "",
-      //   orderStatus: "pending",
-      // });
-      // if (currentOrder) {
-      //   profile.orders.push(currentOrder._id as mongoose.Types.ObjectId);
-      //   const profileResponse = await profile.save();
-      //   return res.status(200).json({ currentOrder, profileResponse });
-    } catch (error) {
-      console.error("CreateOrder error:", error);
-      return {
-        status: 500,
-        error: { message: "Internal server error" },
-      };
+      return payload.res.status(501).json({
+        error: { message: "Create order functionality not implemented yet" },
+      });
+    } catch (error: any) {
+      return payload.res.status(500).json({
+        error: { message: error.message || "Create order failed" },
+      });
     }
   };
 
@@ -334,7 +324,27 @@ export default class CustomerController implements ICustomerController {
     }
   };
 
-  removeOrder = async (payload: ControllerPayload) => {};
+  removeOrder = async (payload: ControllerPayload) => {
+    try {
+      return payload.res.status(501).json({
+        error: { message: "Remove order functionality not implemented yet" },
+      });
+    } catch (error: any) {
+      return payload.res.status(500).json({
+        error: { message: error.message || "Remove order failed" },
+      });
+    }
+  };
 
-  getOrderById = async (payload: ControllerPayload) => {};
+  getOrderById = async (payload: ControllerPayload) => {
+    try {
+      return payload.res.status(501).json({
+        error: { message: "Get order by ID functionality not implemented yet" },
+      });
+    } catch (error: any) {
+      return payload.res.status(500).json({
+        error: { message: error.message || "Get order by ID failed" },
+      });
+    }
+  };
 }

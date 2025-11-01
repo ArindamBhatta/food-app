@@ -8,6 +8,11 @@ import {
 import { VendorDoc } from "../../entities";
 import VendorService from "../../services/VendorService/VendorService";
 import { LoginResponse } from "../../services/VendorService/VendorService.interface";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../../utils/auth.utility";
 import IVendorController from "./VendorController.interface";
 
 export default class VendorController implements IVendorController {
@@ -47,9 +52,62 @@ export default class VendorController implements IVendorController {
 
   refreshTokenRegenerate = async (payload: ControllerPayload) => {
     try {
+      // 1. Get refresh token from cookies
+      const oldRefreshToken = payload.req.cookies?.refreshToken;
+      if (!oldRefreshToken) {
+        return payload.res
+          .status(401)
+          .json({ success: false, message: "No refresh token provided" });
+      }
+
+      // 2. Verify old refresh token
+      const payloadData = verifyRefreshToken(oldRefreshToken);
+      if (!payloadData || !payloadData._id || payloadData.role !== "vendor") {
+        return payload.res.status(401).json({
+          success: false,
+          message: "Invalid or expired refresh token",
+        });
+      }
+
+      // 3. Find vendor by ID
+      const vendor = await this.vendorService.vendorProfile(payloadData._id);
+      if (!vendor) {
+        return payload.res
+          .status(404)
+          .json({ success: false, message: "Vendor not found" });
+      }
+
+      // 4. Generate new tokens
+      const newRefreshToken: string = generateRefreshToken(payloadData);
+      const newAccessToken: string = generateAccessToken(payloadData);
+
+      //5. save new access token to database
+      await this.vendorService.updateRefreshToken(
+        payloadData._id,
+        newRefreshToken
+      );
+
+      // 5. Set new refresh token in cookie
+      payload.res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      // 6. Respond with new tokens
+      return payload.res.status(200).json({
+        success: true,
+        message: "Refresh token regenerated",
+        accessToken: newAccessToken,
+      });
     } catch (error) {
       console.error("Error in refreshTokenRegenerate:", error);
-      throw error;
+      return payload.res.status(500).json({
+        success: false,
+        message: "Failed to regenerate refresh token",
+        details: (error as Error).message,
+      });
     }
   };
 

@@ -55,8 +55,13 @@ export default class CustomerService implements ICustomerService {
     return { customer, otp };
   };
 
-  verifyOtp = async (customerId: string, otp: number) => {
-    const customer = await this.customerRepo.verifyOtp(customerId, otp);
+  verifyOtp = async (
+    otp: number,
+    email?: string,
+    phone?: string,
+    customerId?: string
+  ) => {
+    const customer = await this.customerRepo.verifyOtp(otp, email, phone, customerId);
     if (!customer) return { customer: null };
     const signature = generateAccessToken({
       _id: (customer._id as Types.ObjectId).toString(),

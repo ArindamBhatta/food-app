@@ -35,11 +35,26 @@ export default class CustomerRepo implements ICustomerRepo {
   };
 
   verifyOtp = async (
-    customerId: string,
-    otp: number
+    otp: number,
+    email?: string,
+    phone?: string,
+    customerId?: string
   ): Promise<CustomerDoc | null> => {
-    const customer = await this.db.findById(customerId);
+    let customer: CustomerDoc | null = null;
+    
+    // Find customer by email, phone, or ID
+    if (customerId) {
+      customer = await this.db.findById(customerId);
+    } else if (email || phone) {
+      const query: any = { $or: [] };
+      if (email) query.$or.push({ email });
+      if (phone) query.$or.push({ phone });
+      customer = await this.db.findOne(query);
+    }
+    
     if (!customer) return null;
+    
+    // Verify OTP and check expiry
     if (customer.otp === otp && customer.otp_expiry >= new Date()) {
       customer.verified = true;
       return await customer.save();

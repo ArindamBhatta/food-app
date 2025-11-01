@@ -4,13 +4,14 @@ import express, {
   IRouter,
   NextFunction,
   RequestHandler,
+  Router,
 } from "express";
 import { RouteDefinition } from "./route";
 import { HttpMethod, ApiVersion } from "../constants";
 import routes from "./route";
 import { BusinessLogicError } from "./utils/Error";
 
-const router = express.Router();
+const router: Router = express.Router();
 
 export default (): IRouter => {
   // Apply authentication to GET routes (e.g., protected resources like vendor profile)

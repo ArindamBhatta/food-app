@@ -75,7 +75,7 @@ export default class VendorService implements IVendorService {
       if (!vendorId) {
         throw new Error("Vendor ID not found");
       }
-      await this.vendorRepo.updateRefreshToken(vendorId, refreshToken);
+      this.updateRefreshToken(vendorId, refreshToken);
 
       // Step 7: Return tokens and vendor info
       return {
@@ -87,6 +87,10 @@ export default class VendorService implements IVendorService {
       console.error("Error in vendorLogin:", error);
       throw error;
     }
+  };
+
+  updateRefreshToken = async (vendorId: string, refreshToken: string) => {
+    await this.vendorRepo.updateRefreshToken(vendorId, refreshToken);
   };
 
   vendorProfile = async (vendorId: string): Promise<VendorDoc | null> => {
