@@ -13,6 +13,7 @@ import {
 } from "../../utils/auth.utility";
 import { GenerateOpt } from "../../utils/OtpValidation.utility";
 import { Types } from "mongoose";
+import { Food } from "../../entities";
 
 export default class CustomerService implements ICustomerService {
   private customerRepo: CustomerRepo;
@@ -129,5 +130,12 @@ export default class CustomerService implements ICustomerService {
     customer.address = input.address || customer.address;
     await customer.save();
     return customer;
+  };
+
+  addToCart = async (customerId: string, foodDocId: string, unit: number) => {
+    const food = await Food.findById(foodDocId);
+    if (!food) return null;
+    // Call repo to update cart
+    return await this.customerRepo.addToCart(customerId, foodDocId, unit);
   };
 }

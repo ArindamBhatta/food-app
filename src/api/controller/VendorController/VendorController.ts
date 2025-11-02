@@ -115,7 +115,6 @@ export default class VendorController implements IVendorController {
     }
   };
 
-  //
   vendorProfile = async (payload: ControllerPayload) => {
     try {
       const user: AuthPayload | undefined = payload.req.user;
@@ -147,7 +146,7 @@ export default class VendorController implements IVendorController {
     }
   };
 
-  updateOwnerProfile = async (payload: ControllerPayload) => {
+  updateVendorProfile = async (payload: ControllerPayload) => {
     try {
       const EditVendorProfile: EditVendorProfileDTO = new EditVendorProfileDTO(
         payload.req.body
@@ -159,9 +158,9 @@ export default class VendorController implements IVendorController {
           message: "User not authenticated",
         });
       }
-      const updatedVendor = await this.vendorService.updateOwnerProfile(
-        EditVendorProfile,
-        user._id?.toString()
+      const updatedVendor = await this.vendorService.updateVendorProfile(
+        user._id?.toString(),
+        EditVendorProfile
       );
       if (!updatedVendor) {
         return payload.res.status(404).json({
@@ -224,7 +223,7 @@ export default class VendorController implements IVendorController {
       });
     }
   };
-
+  //TODO: implement this
   updateVendorService = async (payload: ControllerPayload) => {
     try {
     } catch (error) {
@@ -264,8 +263,6 @@ export default class VendorController implements IVendorController {
         price: createdFood.price,
         rating: createdFood.rating,
         images: (createdFood.images as unknown as string[]) || [],
-        createdAt: (createdFood as any).createdAt,
-        updatedAt: (createdFood as any).updatedAt,
       };
 
       return payload.res.status(201).json({
@@ -312,15 +309,15 @@ export default class VendorController implements IVendorController {
     }
   };
 
-  getCurrentOrder = (payload: any) => {
+  getCurrentOrder = async (payload: ControllerPayload) => {
     throw new Error("Method not implemented");
   };
 
-  getOrderDetails = (payload: any) => {
+  getOrderDetails = async (payload: ControllerPayload) => {
     throw new Error("Method not implemented");
   };
 
-  processOrder = (payload: any) => {
+  processOrder = (payload: ControllerPayload) => {
     throw new Error("Method not implemented");
   };
 }

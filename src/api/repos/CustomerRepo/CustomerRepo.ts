@@ -17,16 +17,16 @@ export default class CustomerRepo implements ICustomerRepo {
     if (id && !email && !phone) {
       return this.db.findById(id);
     }
-    
+
     const query: any = { $or: [] };
-    
+
     if (email) query.$or.push({ email });
     if (phone) query.$or.push({ phone });
     if (id) query.$or.push({ _id: id });
-    
+
     // If no search criteria provided, return null
     if (query.$or.length === 0) return null;
-    
+
     return this.db.findOne(query);
   };
 
@@ -41,7 +41,7 @@ export default class CustomerRepo implements ICustomerRepo {
     customerId?: string
   ): Promise<CustomerDoc | null> => {
     let customer: CustomerDoc | null = null;
-    
+
     // Find customer by email, phone, or ID
     if (customerId) {
       customer = await this.db.findById(customerId);
@@ -51,9 +51,9 @@ export default class CustomerRepo implements ICustomerRepo {
       if (phone) query.$or.push({ phone });
       customer = await this.db.findOne(query);
     }
-    
+
     if (!customer) return null;
-    
+
     // Verify OTP and check expiry
     if (customer.otp === otp && customer.otp_expiry >= new Date()) {
       customer.verified = true;
@@ -61,4 +61,30 @@ export default class CustomerRepo implements ICustomerRepo {
     }
     return null;
   };
+
+  // Add or update cart item for a customer
+  async addToCart(customerId: string, foodId: string, unit: number) {
+    const customer = await this.db.findById(customerId).populate("cart.food");
+    if (!customer) return null;
+    let cartItems = customer.cart || [];
+    const existingFoodItem = cartItems.find((item: any) =>
+      item.food._id.equals(foodId)
+    );
+    if (existingFoodItem) {
+      if (unit > 0) {
+        existingFoodItem.unit = unit;
+      } else {
+        cartItems = cartItems.filter(
+          (item: any) => !item.food._id.equals(foodId)
+        );
+      }
+    } else {
+      if (unit > 0) {
+        cartItems.push({ food: foodId, unit });
+      }
+    }
+    customer.cart = cartItems;
+    await customer.save();
+    return customer.cart;
+  }
 }

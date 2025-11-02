@@ -35,8 +35,8 @@ export default class FoodRepo implements IFoodRepo {
       if (!vendor) {
         throw new Error("Vendor not found for linking food");
       }
-      (vendor as any).foods.push(createdFood);
-      await (vendor as any).save();
+      vendor.foods.push(createdFood);
+      await vendor.save();
 
       return createdFood;
     } catch (error) {
@@ -45,10 +45,18 @@ export default class FoodRepo implements IFoodRepo {
     }
   };
 
+  /* 
+? Storing food IDs in the vendor document:
+  Useful for fast lookups or if you want to quickly get all food IDs for a vendor without querying the food collection.
+  Can lead to data duplication and the risk of inconsistency (e.g., if a food is deleted but its ID remains in the vendor's array).
+? Using only the vendorId in food documents:
+  More normalized, less duplication.
+  You can always find all foods for a vendor with a query like find({ vendorId }).
+  */
   getFoods = async (vendorId: string): Promise<FoodDoc[]> => {
     try {
       const foods = await this.foodDb.find({ vendorId });
-      return foods as unknown as FoodDoc[];
+      return foods as FoodDoc[];
     } catch (error) {
       console.error("Error in FoodRepo.getFoods:", error);
       throw new Error("Database error occurred");

@@ -111,9 +111,9 @@ export default class VendorService implements IVendorService {
     }
   };
 
-  updateOwnerProfile = async (
-    UpdateVendorProfile: EditVendorProfileDTO,
-    vendorId: string
+  updateVendorProfile = async (
+    vendorId: string,
+    UpdateVendorProfile: EditVendorProfileDTO
   ): Promise<VendorDoc | null> => {
     try {
       const updatedVendor: VendorDoc | null =
@@ -134,7 +134,7 @@ export default class VendorService implements IVendorService {
   ): Promise<VendorDoc | null> => {
     try {
       //1)upload file in cloudinary
-      const { secure_url } = await uploadBuffer(file);
+      const { secure_url } = await uploadBuffer(file, "shop-image");
 
       //2)persist url in db via vendorRepo
       const updatedVendor: VendorDoc | null =

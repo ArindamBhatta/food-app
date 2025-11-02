@@ -6,11 +6,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// NEW helper
-export const uploadBuffer = async (file: Express.Multer.File) => {
+//Fast, simple, secure, works in serverless, no cleanup needed
+export const uploadBuffer = async (
+  file: Express.Multer.File,
+  cloudinaryFolderName: string
+) => {
   return new Promise<UploadApiResponse>((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "shop-images" }, // folder name in cloudinary
+      { folder: cloudinaryFolderName }, // folder name in cloudinary
       (error, result) => {
         if (error || !result) return reject(error);
         resolve(result);

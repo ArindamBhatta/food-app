@@ -47,7 +47,7 @@ export class EditCustomerProfileInputs {
 
 // Order related DTO
 export class OrderInputs {
-  _id: string;
+  foodDocId: string;
   unit: number;
 }
 export class CustomerResponseDTO {

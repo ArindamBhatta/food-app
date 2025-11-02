@@ -6,8 +6,7 @@ import {
   EditCustomerProfileInputs,
 } from "../../dto/interface/Customer.dto";
 import ICustomerController from "./CustomerController.interface";
-import { Customer, CustomerDoc } from "../../entities/Customer";
-import { Food } from "../../entities/Food";
+import { Customer } from "../../entities/Customer";
 import { OrderInputs } from "../../dto/interface/Customer.dto";
 import CustomerService from "../../services/CustomerService/CustomerService";
 import { AuthPayload } from "../../dto/Auth.dto";
@@ -151,6 +150,27 @@ export default class CustomerController implements ICustomerController {
     }
   };
 
+  profileDetails = async (payload: ControllerPayload) => {
+    try {
+      const customer = payload.req.user;
+      if (!customer || !customer._id) {
+        return payload.res.status(401).json({
+          error: { message: "User not authenticated" },
+        });
+      }
+
+      const profile = await this.customerService.getCustomerById(customer._id);
+
+      return payload.res.status(200).json({
+        profile,
+      });
+    } catch (error: any) {
+      return payload.res.status(500).json({
+        error: { message: error.message || "Customer signup failed" },
+      });
+    }
+  };
+
   addDetailsOfUser = async (payload: ControllerPayload) => {
     try {
       // 1. Use access token for access the user data. req.user
@@ -192,50 +212,34 @@ export default class CustomerController implements ICustomerController {
   addToCart = async (payload: ControllerPayload) => {
     const customer = payload.req.user as AuthPayload;
     if (!customer) {
-      return {
-        status: 404,
-        error: { message: "Unable to create cart" },
-      };
+      return payload.res
+        .status(404)
+        .json({ error: { message: "Unable to create cart" } });
     }
-    // document reference. customer.cart.food
-    const profile = await Customer.findById(customer._id).populate("cart.food");
-    if (!profile) {
-      return {
-        status: 404,
-        error: { message: "Customer not found" },
-      };
+    const { foodDocId, unit } = payload.req.body as OrderInputs;
+    if (!foodDocId || typeof unit !== "number") {
+      return payload.res
+        .status(400)
+        .json({ error: { message: "Invalid input" } });
     }
-    const { _id, unit } = payload.req.body as OrderInputs;
-    const food = await Food.findById(_id);
-    if (!food) {
-      return {
-        status: 404,
-        error: { message: "Food not found" },
-      };
-    }
-    let cartItems = profile.cart;
-    const existingFoodItem = cartItems.find((item: any) =>
-      item.food._id.equals(food._id)
-    );
-    if (existingFoodItem) {
-      if (unit > 0) {
-        existingFoodItem.unit = unit;
-      } else {
-        cartItems = cartItems.filter(
-          (item: any) => !item.food._id.equals(food._id)
-        );
+    try {
+      const updatedCart = await this.customerService.addToCart(
+        customer._id,
+        foodDocId,
+        unit
+      );
+
+      if (!updatedCart) {
+        return payload.res
+          .status(404)
+          .json({ error: { message: "Customer or food not found" } });
       }
-    } else {
-      if (unit > 0) {
-        cartItems.push({ food, unit });
-      }
+      return payload.res.status(200).json({ cart: updatedCart });
+    } catch (error: any) {
+      return payload.res
+        .status(500)
+        .json({ error: { message: error.message || "Operation failed" } });
     }
-    profile.cart = cartItems;
-    await profile.save();
-    return {
-      status: 200,
-      cart: cartItems,
-    };
   };
 
   getCard = async (payload: ControllerPayload) => {
@@ -256,40 +260,39 @@ export default class CustomerController implements ICustomerController {
       error: { message: "Card is empty" },
     };
   };
-  AddToCart: (payload: ControllerPayload) => any;
 
-  removeFromCart = async (payload: ControllerPayload) => {
-    const customer = payload.req.user;
-    if (customer) {
-      const profile = await Customer.findById(customer._id).populate(
-        "cart.food"
-      );
-      if (profile) {
-        const { _id } = payload.req.body as OrderInputs;
-        const food = await Food.findById(_id);
-        if (!food) {
-          return {
-            status: 404,
-            error: { message: "Food not found" },
-          };
-        }
-        let cartItems = profile.cart;
-        cartItems = cartItems.filter(
-          (item: any) => !item.food._id.equals(food._id)
-        );
-        profile.cart = cartItems;
-        await profile.save();
-        return {
-          status: 200,
-          cart: cartItems,
-        };
-      }
-    }
-    return {
-      status: 400,
-      error: { message: "Card is empty" },
-    };
-  };
+  // removeFromCart = async (payload: ControllerPayload) => {
+  //   const customer = payload.req.user;
+  //   if (customer) {
+  //     const profile = await Customer.findById(customer._id).populate(
+  //       "cart.food"
+  //     );
+  //     if (profile) {
+  //       const { _id } = payload.req.body as OrderInputs;
+  //       const food = await Food.findById(_id);
+  //       if (!food) {
+  //         return {
+  //           status: 404,
+  //           error: { message: "Food not found" },
+  //         };
+  //       }
+  //       let cartItems = profile.cart;
+  //       cartItems = cartItems.filter(
+  //         (item: any) => !item.food._id.equals(food._id)
+  //       );
+  //       profile.cart = cartItems;
+  //       await profile.save();
+  //       return {
+  //         status: 200,
+  //         cart: cartItems,
+  //       };
+  //     }
+  //   }
+  //   return {
+  //     status: 400,
+  //     error: { message: "Card is empty" },
+  //   };
+  // };
 
   createOrder = async (payload: ControllerPayload) => {
     try {

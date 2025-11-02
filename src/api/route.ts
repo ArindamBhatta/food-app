@@ -20,8 +20,9 @@ type RouteMap = {
 
 const routes: RouteMap = {
   [HttpMethod.GET]: {
-    "vendor-by-id": adminController.getVendorById,
+    "vendor-profile": adminController.getVendorById,
     "all-vendor": adminController.getAllVendor,
+    "customer-profile": [auth(["customer"]), customerController.profileDetails],
     "get-vendor-profile": [auth(["vendor"]), vendorController.vendorProfile],
     "get-all-food": [auth(["vendor"]), vendorController.fetchAllFood],
   },
@@ -36,11 +37,12 @@ const routes: RouteMap = {
       upload.array("images", 5),
       vendorController.vendorAddFoods,
     ],
+    "add-to-card": [auth(["customer"]), customerController.addToCart],
   },
   [HttpMethod.PATCH]: {
     "update-vendor-profile": [
       auth(["vendor"]),
-      vendorController.updateOwnerProfile,
+      vendorController.updateVendorProfile,
     ],
     "update-vendor-cover-image": [
       auth(["vendor"]),
