@@ -14,6 +14,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../utils/auth.utility";
+import { Food } from "../../entities";
 
 export default class CustomerController implements ICustomerController {
   private customerService: CustomerService;
@@ -209,7 +210,7 @@ export default class CustomerController implements ICustomerController {
   };
 
   // card section
-  addToCart = async (payload: ControllerPayload) => {
+  addToWishlist = async (payload: ControllerPayload) => {
     const customer = payload.req.user as AuthPayload;
     if (!customer) {
       return payload.res
@@ -241,17 +242,53 @@ export default class CustomerController implements ICustomerController {
         .json({ error: { message: error.message || "Operation failed" } });
     }
   };
-
-  getCard = async (payload: ControllerPayload) => {
+  //get all wishlist food
+  allWishlistFood = async (payload: ControllerPayload) => {
+    const customer = payload.req.user;
+    if (!customer || !customer._id) {
+      return payload.res
+        .status(401)
+        .json({ error: { message: "User not authenticated" } });
+    }
+    try {
+      const cart = await this.customerService.getCart(customer._id);
+      if (!cart || cart.length === 0) {
+        return payload.res
+          .status(404)
+          .json({ error: { message: "Cart is empty" } });
+      }
+      return payload.res.status(200).json({ cart });
+    } catch (error: any) {
+      return payload.res
+        .status(500)
+        .json({ error: { message: error.message || "Failed to fetch cart" } });
+    }
+  };
+  //TODO:
+  removeWishlistData = async (payload: ControllerPayload) => {
     const customer = payload.req.user;
     if (customer) {
       const profile = await Customer.findById(customer._id).populate(
         "cart.food"
       );
       if (profile) {
+        const { wishlistId } = payload.req.body;
+        const food = await Food.findById(wishlistId);
+        if (!food) {
+          return {
+            status: 404,
+            error: { message: "Food not found" },
+          };
+        }
+        let cartItems = profile.cart;
+        cartItems = cartItems.filter(
+          (item: any) => !item.food._id.equals(food._id)
+        );
+        profile.cart = cartItems;
+        await profile.save();
         return {
           status: 200,
-          cart: profile.cart,
+          cart: cartItems,
         };
       }
     }
@@ -260,39 +297,6 @@ export default class CustomerController implements ICustomerController {
       error: { message: "Card is empty" },
     };
   };
-
-  // removeFromCart = async (payload: ControllerPayload) => {
-  //   const customer = payload.req.user;
-  //   if (customer) {
-  //     const profile = await Customer.findById(customer._id).populate(
-  //       "cart.food"
-  //     );
-  //     if (profile) {
-  //       const { _id } = payload.req.body as OrderInputs;
-  //       const food = await Food.findById(_id);
-  //       if (!food) {
-  //         return {
-  //           status: 404,
-  //           error: { message: "Food not found" },
-  //         };
-  //       }
-  //       let cartItems = profile.cart;
-  //       cartItems = cartItems.filter(
-  //         (item: any) => !item.food._id.equals(food._id)
-  //       );
-  //       profile.cart = cartItems;
-  //       await profile.save();
-  //       return {
-  //         status: 200,
-  //         cart: cartItems,
-  //       };
-  //     }
-  //   }
-  //   return {
-  //     status: 400,
-  //     error: { message: "Card is empty" },
-  //   };
-  // };
 
   createOrder = async (payload: ControllerPayload) => {
     try {

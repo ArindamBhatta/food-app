@@ -25,6 +25,10 @@ const routes: RouteMap = {
     "customer-profile": [auth(["customer"]), customerController.profileDetails],
     "get-vendor-profile": [auth(["vendor"]), vendorController.vendorProfile],
     "get-all-food": [auth(["vendor"]), vendorController.fetchAllFood],
+    "user-wishlist-food": [
+      auth(["customer"]),
+      customerController.allWishlistFood,
+    ],
   },
   [HttpMethod.POST]: {
     "create-vendor": [auth(["admin"]), adminController.createVendor], // 🛡 admin-only
@@ -37,7 +41,7 @@ const routes: RouteMap = {
       upload.array("images", 5),
       vendorController.vendorAddFoods,
     ],
-    "add-to-card": [auth(["customer"]), customerController.addToCart],
+    "add-to-card": [auth(["customer"]), customerController.addToWishlist],
   },
   [HttpMethod.PATCH]: {
     "update-vendor-profile": [

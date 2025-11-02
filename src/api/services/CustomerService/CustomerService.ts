@@ -138,4 +138,12 @@ export default class CustomerService implements ICustomerService {
     // Call repo to update cart
     return await this.customerRepo.addToCart(customerId, foodDocId, unit);
   };
+
+  getCart = async (customerId: string) => {
+    return await this.customerRepo.getCart(customerId);
+  };
+
+  removeFromCart = async (customerId: string, foodDocId: string) => {
+    return await this.customerRepo.removeFromCart(customerId, foodDocId);
+  };
 }

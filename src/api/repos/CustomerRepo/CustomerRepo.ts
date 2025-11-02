@@ -63,7 +63,7 @@ export default class CustomerRepo implements ICustomerRepo {
   };
 
   // Add or update cart item for a customer
-  async addToCart(customerId: string, foodId: string, unit: number) {
+  addToCart = async (customerId: string, foodId: string, unit: number) => {
     const customer = await this.db.findById(customerId).populate("cart.food");
     if (!customer) return null;
     let cartItems = customer.cart || [];
@@ -86,5 +86,14 @@ export default class CustomerRepo implements ICustomerRepo {
     customer.cart = cartItems;
     await customer.save();
     return customer.cart;
-  }
+  };
+
+  // Fetch and return the populated cart for a customer
+  getCart = async (customerId: string) => {
+    const customer = await this.db.findById(customerId).populate("cart.food");
+    if (!customer) return null;
+    return customer.cart;
+  };
+
+  removeFromCart = (customerId: string, wishlistId: string) => {};
 }
