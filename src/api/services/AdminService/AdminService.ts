@@ -1,5 +1,5 @@
 import AdminRepo from "../../repos/AdminRepo/AdminRepo";
-import { VendorDoc } from "../../entities";
+import { VendorDoc } from "../../models";
 import IAdminService from "./AdminService.interface";
 
 import { generateSalt, hashPassword } from "../../utils/auth.utility";

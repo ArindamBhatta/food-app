@@ -1,5 +1,5 @@
 import { ControllerPayload } from "../../../constants";
-import { VendorDoc } from "../../entities";
+import { VendorDoc } from "../../models";
 
 export default interface IVendorController {
   vendorLogin: (payload: ControllerPayload) => {};

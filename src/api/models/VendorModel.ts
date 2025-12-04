@@ -1,8 +1,9 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
-import { FoodDoc } from "./Food";
+// It can be replaced anytime (Prisma, SQL, anything else)
 
-// 1. TypeScript Interface - Defines the shape of your data
-interface VendorDoc extends Document {
+import mongoose, { Schema, Document } from "mongoose";
+
+//VendorDocument is the interface for a Mongoose document
+export interface VendorDocument extends Document {
   name: string;
   ownerName: string;
   foodType: string[];
@@ -13,12 +14,13 @@ interface VendorDoc extends Document {
   password: string;
   salt: string;
   serviceAvailable: boolean;
-  coverImages: [string]; //shop banner
+  coverImages: string[]; //shop banner
   rating: number;
-  foods: [FoodDoc]; //store the food doc
+  foods: mongoose.Types.ObjectId[]; //store the food doc
+  refreshToken: string | null;
+  refreshTokenUpdatedAt: Date | null;
 }
 
-//2. Mongoose Schema - Defines database structure and validation
 const VendorSchema = new Schema(
   {
     name: { type: String, require: true },
@@ -60,9 +62,10 @@ const VendorSchema = new Schema(
   }
 );
 
-const Vendor = mongoose.model<VendorDoc>("vendor", VendorSchema);
-
-export { Vendor, VendorDoc };
+export const VendorModel = mongoose.model<VendorDocument>(
+  "vendor",
+  VendorSchema
+);
 
 /*
 1. VendorDoc Interface:

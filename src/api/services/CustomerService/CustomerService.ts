@@ -2,7 +2,7 @@ import {
   CreateCustomerDTO,
   EditCustomerProfileInputs,
 } from "../../dto/interface/Customer.dto";
-import { CustomerDoc } from "../../entities/Customer";
+import { CustomerDoc } from "../../models/CustomerModel";
 import ICustomerService from "./CustomerService.interface";
 import CustomerRepo from "../../repos/CustomerRepo/CustomerRepo";
 import {
@@ -13,7 +13,7 @@ import {
 } from "../../utils/auth.utility";
 import { GenerateOpt } from "../../utils/OtpValidation.utility";
 import { Types } from "mongoose";
-import { Food } from "../../entities";
+import { Food } from "../../models";
 
 export default class CustomerService implements ICustomerService {
   private customerRepo: CustomerRepo;

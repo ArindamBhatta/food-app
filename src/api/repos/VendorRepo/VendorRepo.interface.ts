@@ -1,4 +1,4 @@
-import { VendorDoc } from "../../entities";
+import { VendorDoc } from "../../models";
 
 export default interface IVendorRepo {
   findVendor: ({

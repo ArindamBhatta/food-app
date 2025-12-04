@@ -1,4 +1,4 @@
-import { Vendor, Food, Customer } from "../entities";
+import { Vendor, Food, Customer } from "../models";
 
 // Initialize repositories
 import AdminRepo from "./AdminRepo/AdminRepo";

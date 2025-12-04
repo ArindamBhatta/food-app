@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { VendorDoc } from "../../entities";
+import { VendorDoc } from "../../models";
 import IVendorService, { LoginResponse } from "./VendorService.interface";
 import VendorRepo from "../../repos/VendorRepo/VendorRepo";
 import {

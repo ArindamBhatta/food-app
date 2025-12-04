@@ -1,4 +1,4 @@
-import { CustomerDoc } from "../../entities/Customer";
+import { CustomerDoc } from "../../models/CustomerModel";
 import { CreateCustomerDTO } from "../../dto/interface/Customer.dto";
 
 export default interface ICustomerService {

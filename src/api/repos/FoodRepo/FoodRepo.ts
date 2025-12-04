@@ -1,4 +1,4 @@
-import { Food, FoodDoc, Vendor, VendorDoc } from "../../entities";
+import { Food, FoodDoc, Vendor, VendorDoc } from "../../models";
 import { CreateFoodInput } from "../../dto/interface/Food.dto";
 import IFoodRepo from "./FoodRepo.interface";
 

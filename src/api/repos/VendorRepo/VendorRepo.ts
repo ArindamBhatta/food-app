@@ -1,11 +1,15 @@
+//Bridge Between Domain & Mongoose
+
 import { EditVendorProfileDTO } from "../../dto/interface/Vendor.dto";
-import { Vendor, VendorDoc } from "../../entities";
+import { VendorModel, VendorDocument } from "../../models";
+import { VendorEntity } from "../../../entity/VendorEntity";
 import IVendorRepo from "./VendorRepo.interface";
 
 export default class VendorRepo implements IVendorRepo {
-  private db: typeof Vendor;
+  //vendor want a Mongoose mode
+  private db: typeof VendorModel;
 
-  constructor(db: typeof Vendor) {
+  constructor(db: typeof VendorModel) {
     this.db = db;
   }
 
@@ -15,26 +19,24 @@ export default class VendorRepo implements IVendorRepo {
   }: {
     vendorId?: string;
     email?: string;
-  }): Promise<VendorDoc | null> => {
+  }): Promise<VendorEntity | null> => {
     try {
+      let vendor: VendorDocument | null = null;
       if (email) {
-        const vendor: VendorDoc | null = await this.db.findOne({
+        vendor = await this.db.findOne({
           email: email.toLowerCase().trim(),
         });
-
         if (!vendor) {
           throw new Error("Vendor not found");
         }
-
-        return vendor;
+        return this.toDomain(vendor);
       } else if (vendorId) {
-        const vendor: VendorDoc | null = await this.db.findById(vendorId);
+        const vendor: VendorDocument | null = await this.db.findById(vendorId);
 
         if (!vendor) {
           throw new Error("Vendor not found");
         }
-
-        return vendor;
+        return this.toDomain(vendor);
       } else {
         throw new Error("Vendor not found");
       }
@@ -70,7 +72,7 @@ export default class VendorRepo implements IVendorRepo {
   updateOwnerProfile = async (
     vendorId: string,
     UpdateVendorProfile: EditVendorProfileDTO
-  ): Promise<VendorDoc | null> => {
+  ): Promise<VendorEntity | null> => {
     try {
       const updateProfile = await this.db.findByIdAndUpdate(
         vendorId,
@@ -81,7 +83,7 @@ export default class VendorRepo implements IVendorRepo {
       if (!updateProfile) {
         throw new Error("Vendor not found for profile update");
       }
-      return updateProfile;
+      return this.toDomain(updateProfile);
     } catch (error) {
       console.error("Error in VendorRepo.updateProfile:", error);
       throw new Error("Database error occurred");
@@ -91,21 +93,47 @@ export default class VendorRepo implements IVendorRepo {
   updateShopImage = async (
     vendorId: string,
     imageUrl: string
-  ): Promise<VendorDoc | null> => {
+  ): Promise<VendorEntity | null> => {
     try {
-      const updatedVendor: VendorDoc | null = await this.db.findByIdAndUpdate(
-        vendorId,
-        { $push: { coverImages: imageUrl } },
-        { new: true, runValidators: true }
-      );
+      const updatedVendor: VendorDocument | null =
+        await this.db.findByIdAndUpdate(
+          vendorId,
+          { $push: { coverImages: imageUrl } },
+          { new: true, runValidators: true }
+        );
 
       if (!updatedVendor) {
         throw new Error("Vendor not found for profile update");
       }
-      return updatedVendor;
+      return this.toDomain(updatedVendor);
     } catch (error) {
       console.error("Error in VendorRepo.updateProfile:", error);
       throw new Error("Database error occurred");
     }
   };
+
+  // --------------------------------------------
+  // 🔄 MAPPING BETWEEN MONGOOSE DOC & DOMAIN
+  // --------------------------------------------
+
+  private toDomain(doc: VendorDocument): VendorEntity {
+    return {
+      id: doc._id.toString(),
+      name: doc.name,
+      ownerName: doc.ownerName,
+      foodType: doc.foodType,
+      pincode: doc.pincode,
+      address: doc.address,
+      phone: doc.phone,
+      email: doc.email,
+      password: doc.password,
+      salt: doc.salt,
+      serviceAvailable: doc.serviceAvailable,
+      coverImages: doc.coverImages,
+      rating: doc.rating,
+      foods: doc.foods.map((id) => id.toString()),
+      refreshToken: doc.refreshToken,
+      refreshTokenUpdatedAt: doc.refreshTokenUpdatedAt,
+    };
+  }
 }

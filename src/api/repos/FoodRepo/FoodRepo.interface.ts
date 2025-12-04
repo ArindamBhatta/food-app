@@ -1,5 +1,5 @@
 import { CreateFoodInput } from "../../dto/interface/Food.dto";
-import { FoodDoc } from "../../entities";
+import { FoodDoc } from "../../models";
 
 export default interface IFoodRepo {
   addFood(

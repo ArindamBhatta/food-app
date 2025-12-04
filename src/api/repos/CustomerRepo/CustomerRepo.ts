@@ -1,4 +1,4 @@
-import { Customer, CustomerDoc } from "../../entities/Customer";
+import { Customer, CustomerDoc } from "../../models/CustomerModel";
 import ICustomerRepo from "./CustomerRepo.interface";
 
 export default class CustomerRepo implements ICustomerRepo {

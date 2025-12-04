@@ -6,7 +6,7 @@ import {
   VendorResponseDTO,
 } from "../../dto/interface/Vendor.dto";
 import { ControllerPayload } from "../../../constants";
-import { VendorDoc } from "../../entities";
+import { VendorDoc } from "../../models";
 import logger from "../../../infrastructure/logger/winston";
 
 export default class AdminController implements IAdminController {

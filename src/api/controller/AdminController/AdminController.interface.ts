@@ -1,5 +1,5 @@
 import { ControllerPayload } from "../../../constants";
-import { VendorResponseDTO } from "../../dto/Vendor.dto";
+import { VendorResponseDTO } from "../../dto/interface/Vendor.dto";
 
 export default interface IAdminController {
   createVendor: (payload: ControllerPayload) => Promise<VendorResponseDTO>;

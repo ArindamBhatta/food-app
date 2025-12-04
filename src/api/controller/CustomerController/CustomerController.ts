@@ -6,7 +6,7 @@ import {
   EditCustomerProfileInputs,
 } from "../../dto/interface/Customer.dto";
 import ICustomerController from "./CustomerController.interface";
-import { Customer } from "../../entities/Customer";
+import { Customer } from "../../models/CustomerModel";
 import { OrderInputs } from "../../dto/interface/Customer.dto";
 import CustomerService from "../../services/CustomerService/CustomerService";
 import { AuthPayload } from "../../dto/Auth.dto";
@@ -14,7 +14,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../utils/auth.utility";
-import { Food } from "../../entities";
+import { Food } from "../../models";
 
 export default class CustomerController implements ICustomerController {
   private customerService: CustomerService;

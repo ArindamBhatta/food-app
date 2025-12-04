@@ -7,7 +7,7 @@ import {
 } from "../../dto/interface/Vendor.dto";
 import { CreateFoodInput, FoodResponse } from "../../dto/interface/Food.dto";
 import FoodService from "../../services/FoodService/FoodService";
-import { VendorDoc } from "../../entities";
+import { VendorDoc } from "../../models";
 import VendorService from "../../services/VendorService/VendorService";
 import { LoginResponse } from "../../services/VendorService/VendorService.interface";
 import {

@@ -21,11 +21,10 @@ This project is a backend API for a food delivery platform supporting customers,
 The codebase is organized in layers to enforce separation of concerns:
 
 - **Entities**: Core business models (e.g., Customer, Vendor, Food, Order)
-- **Repositories**: Database access
+- **Mongoose model**: infrastructure
+- **Repositories**: Bridge
 - **Services**: Business logic
-- **Controllers**: Handle HTTP requests/responses
-- **DTOs**: Data transfer objects, for request/response validation.
-- **Infrastructure**: External dependencies (database, logger, cache)
+- **Controllers + DTOs**: Presentation.
 
 ## Tech Stack
 

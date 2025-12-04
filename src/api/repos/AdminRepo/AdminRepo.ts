@@ -1,5 +1,5 @@
 import logger from "../../../infrastructure/logger/winston";
-import { Vendor, VendorDoc } from "../../entities";
+import { Vendor, VendorDoc } from "../../models";
 import { BusinessLogicError } from "../../utils/Error";
 import IAdminRepo, { ICreateVendorRepoParams } from "./AdminRepo.interface";
 

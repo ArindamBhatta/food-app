@@ -1,4 +1,4 @@
-import { FoodDoc, VendorDoc } from "../../entities";
+import { FoodDoc, VendorDoc } from "../../models";
 import { CreateFoodInput } from "../../dto/interface/Food.dto";
 import VendorRepo from "../../repos/VendorRepo/VendorRepo";
 import { UploadApiErrorResponse, UploadApiResponse } from "cloudinary";

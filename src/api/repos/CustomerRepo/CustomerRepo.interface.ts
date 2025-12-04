@@ -1,8 +1,17 @@
-import { CustomerDoc } from "../../entities/Customer";
+import { CustomerDoc } from "../../models/CustomerModel";
 
 export default interface ICustomerRepo {
-  existingCustomer(email?: string, phone?: string, id?: string): Promise<CustomerDoc | null>;
+  existingCustomer(
+    email?: string,
+    phone?: string,
+    id?: string
+  ): Promise<CustomerDoc | null>;
   createCustomer(data: Partial<CustomerDoc>): Promise<CustomerDoc>;
-  verifyOtp(otp: number, email?: string, phone?: string, customerId?: string): Promise<CustomerDoc | null>;
+  verifyOtp(
+    otp: number,
+    email?: string,
+    phone?: string,
+    customerId?: string
+  ): Promise<CustomerDoc | null>;
   addToCart(customerId: string, foodId: string, unit: number): Promise<any>;
 }
